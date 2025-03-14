@@ -1,4 +1,6 @@
 from google import genai
+from langchain.memory import ConversationBufferMemory
+memory = ConversationBufferMemory()
 
 def generate_idea(prompt):
     try:
