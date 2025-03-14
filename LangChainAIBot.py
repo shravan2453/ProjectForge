@@ -1,14 +1,11 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationChain
-from langchain.schema.messages import HumanMessage
 import os
-import getpass
 
-#setup
 
 # Step 1: Get API key securely
-api_key = getpass.getpass('🔑 Enter your Google Gemini API Key: ')
+api_key = "AIzaSyDfsDfODl8Yd02x4XIGFLNa6MFGjjNQgBM"
 os.environ["GOOGLE_API_KEY"] = api_key
 
 # Initialize Gemini LLM (using LangChain)
@@ -23,8 +20,6 @@ conversation = ConversationChain(
     memory=memory
 )
 
-# Functions
-
 # Function to handle category selection and generate custom responses
 def get_custom_response():
     print("🚀 Welcome to the Idea Generator!")
@@ -37,7 +32,7 @@ def get_custom_response():
             break
         
         # Create the prompt dynamically from user input
-        selected_prompt = f"Give me an idea from the following specifications: {choice}."
+        selected_prompt = f"Give me a well thought out idea from the following specifications: {choice}. If it doesn't seem like something thats specific enough, ask them for more information and keep the coversation going until you can sufficiently come up with a strong idea."
 
         # Generate the response using the conversation chain (memory included)
         response = conversation.predict(input=selected_prompt)
