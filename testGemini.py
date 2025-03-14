@@ -14,21 +14,17 @@ def generate_idea(prompt):
     except Exception as e:
         return f"Error occurred:"
 
-# Function to handle category selection and generate custom response
-def get_custom_response():
-    print("Welcome to the Idea Generator!")
-    choice = input("Tell me what you need an idea for, and any specific help and I'll give it to you: ")
+# Example interaction with Gemini API
+user_input = "Hello, how are you?"
+gemini_response = generate_idea(user_input)
+if gemini_response:
+    print("Gemini response:", gemini_response)
 
 
-    # Get the prompt for the selected category
-    selected_prompt = f"Give me an idea from the following specifications, which you will get from {choice}"
-
-    response = generate_idea(selected_prompt)
-    
-    # Display the generated idea
-    print(f"Generated Idea: {response}")
-
-# Main function to run the program
-if __name__ == "__main__":
-    get_custom_response()
-
+# Example loop for ongoing conversation
+while True:
+    user_input = input("You: ")
+    if user_input.lower() == "exit":
+        break
+    gemini_reply = generate_idea(user_input)
+    print("Gemini:", gemini_reply)
