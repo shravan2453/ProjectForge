@@ -5,7 +5,6 @@ import os
 from langchain.chat_models import ChatGoogleGenerativeAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
-export GOOGLE_API_KEY="AIzaSyDfsDfODl8Yd02x4XIGFLNa6MFGjjNQgBM"
 
 
 llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", google_api_key=os.environ.get("AIzaSyDfsDfODl8Yd02x4XIGFLNa6MFGjjNQgBM"))
