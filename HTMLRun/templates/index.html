@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Idea Generation Bot</title>
+</head>
+<body>
+    <h2>Idea Generation Bot</h2>
+    <form id="idea-form">
+        <label>What is this project for? (Ex: Hackathon, Startup, Personal Website, etc.)</label><br>
+        <input type="text" id="project_type"><br><br>
+
+        <label>Do you have a topic of interest in mind? (Ex: Sports, Law, Math, etc.)</label><br>
+        <input type="text" id="project_interest"><br><br>
+
+        <label>What sort of technical skills do you want to work with (If Any)? (Ex: Data Visualizations, Machine Learning, Full Stack, NONE, etc.)</label><br>
+        <input type="text" id="project_technical"><br><br>
+
+        <label>Do you have a potential idea in mind or nothing at all?</label><br>
+        <input type="text" id="project_potential"><br><br>
+
+        <label>Additional Information?</label><br>
+        <input type="text" id="project_additional"><br><br>
+
+        <button type="submit">Generate Ideas</button>
+    </form>
+
+    <h3>💡 Generated Ideas</h3>
+    <pre id="output"></pre>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
