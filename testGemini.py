@@ -4,7 +4,7 @@ memory = ConversationBufferMemory()
 
 def generate_idea(prompt):
     try:
-        client = genai.Client(api_key="AIzaSyDfsDfODl8Yd02x4XIGFLNa6MFGjjNQgBM")
+        client = genai.Client(api_key="")
         # Make the API call with the new interface
         response = client.models.generate_content(
         model="gemini-2.0-flash", contents=prompt

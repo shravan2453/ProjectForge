@@ -7,7 +7,7 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 
 
-llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", google_api_key=os.environ.get("AIzaSyDfsDfODl8Yd02x4XIGFLNa6MFGjjNQgBM"))
+llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", google_api_key=os.environ.get(""))
 
 template = """The following is a friendly conversation between a user and an AI assistant.
 The chatbot is talkative and provides lots of specific details from its context.
