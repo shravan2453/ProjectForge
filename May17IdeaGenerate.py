@@ -1,6 +1,6 @@
 from google import genai
 
-client = genai.Client(api_key="AIzaSyDoOv96fCayBc-5vA_tBoIAFyNglFDizAQ")
+client = genai.Client(api_key="")
 
 print("🚀 Welcome to the Idea Generator!")
 
