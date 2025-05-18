@@ -1,10 +1,10 @@
 import os
 
 os.environ["LANGSMITH_TRACING"] = "true"
-os.environ["LANGSMITH_API_KEY"] = "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"
+os.environ["LANGSMITH_API_KEY"] = ""
 
 # Step 1: Get API key securely
-api_key = "AIzaSyDfsDfODl8Yd02x4XIGFLNa6MFGjjNQgBM"
+api_key = ""
 os.environ["GOOGLE_API_KEY"] = api_key
 
 

@@ -5,7 +5,7 @@ import os
 
 
 # Step 1: Get API key securely
-api_key = "AIzaSyDfsDfODl8Yd02x4XIGFLNa6MFGjjNQgBM"
+api_key = ""
 os.environ["GOOGLE_API_KEY"] = api_key
 
 # Initialize Gemini LLM (using LangChain)
