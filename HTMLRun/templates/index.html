@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Idea Generation Bot</title>
+
+    <style>
+    .idea-button:hover {
+        background-color: #007bff !important;
+        color: white !important;
+    }
+    </style>
 </head>
 <body>
     <h2>Idea Generation Bot</h2>
@@ -25,8 +32,30 @@
         <button type="submit">Generate Ideas</button>
     </form>
 
+    <div id="generate-ideas" style="display: none; margin-top: 20px;">
     <h3>💡 Generated Ideas</h3>
+    </div>
+
     <pre id="output"></pre>
+
+    <!-- Below #output -->
+    <button id="submit-selected-idea" style="display: none; margin-top: 20px;">Submit Selected Idea</button>
+    <button id="dislike-button" style="display: none; margin-top: 20px;">I don’t like these</button>
+
+    <div id="chat" style="display:none;">
+        <p>Start chatting with the bot...</p>
+        <input type="text" id="user-message">
+        <button id="send">Send</button>
+        <div id="chat-log"></div>
+    </div>
+
+    <!-- Thank You Screen (Initially Hidden) -->
+    <div id="thank-you-screen" style="display: none;">
+        <h3>🎉 Congrats on finding an idea!</h3>
+        <p id="selected-idea-display"></p>
+    </div>
+
+
 
     <script src="/static/script.js"></script>
 </body>

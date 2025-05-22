@@ -60,7 +60,7 @@ how crazy the idea sounds. Specifically, you will take five inputs, and use the 
     The output of these ideas should be formatted as a bullet point list with each bullet point being a project idea.
     For each project idea I want The Name of the project idea, labeled 'Project Name:', the concept or the overview of the idea itself,
     labeled 'Project Overview:', the difficulty of the project itself, rating the difficulty as either novice, intermediate, advanced, 
-    or somewhere in between, labeling this as 'Project Difficulty:', and lastly how many hours the project should take approximately and how
+    or somewhere in between, labeling this as 'Project Difficulty:', and lastly how many hours the project should take approximately AND MORE IMPORTANTLY how
     many weeks the project should take approximately, giving a general time range into hours per week and also providing the 
     approximate total number of weeks the project will take. This should be labeled as 'Project Timeline:'.
     """
