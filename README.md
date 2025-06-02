@@ -1,9 +1,12 @@
 # IdeaGenerationChatBot
 
+<ins>**An All-In-One Idea Generation and Project Management Tool**<ins>
+
+"For the students, by the students"...
+
+Designed for students passionate about building
+
 **Contributors:** Shravan Selvavel, Natnael Worku
-
-This is a chatbot utilizing Google Gemini API to help students and businesses with idea generation, with the primary intention being full website integration
-
 
 # Project Setup
 
