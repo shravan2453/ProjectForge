@@ -11,6 +11,9 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import { Pressable } from 'react-native';
+import CustomHeader from '../screens/CustomHeader';
+
+
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
@@ -60,10 +63,11 @@ export default function HomeScreen({ navigation }: Props) {
     };
 
   return (
+    
     <ScrollView contentContainerStyle={styles.container}>
+      <CustomHeader title="ProjectForge" />
       <Text style={styles.header}>Welcome to ProjectForge</Text>
-      <Text style={styles.subheader}>Fill out the form to generate your perfect project ideas.</Text>
-
+      <Text style={styles.subheader}>Let’s build your next big idea!</Text>
       {Object.entries(form).map(([key, value]) => (
         <View key={key} style={styles.inputGroup}>
             <Text style={styles.label}>{labelsAndPlaceholders[key].label}</Text>

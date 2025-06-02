@@ -35,9 +35,17 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'ProjectForge' }} />
-        <Stack.Screen name="Ideas" component={IdeasScreen} options={{ title: 'Your Project Ideas' }} />
-      </Stack.Navigator>
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Ideas"
+          component={IdeasScreen}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>      
     </NavigationContainer>
   );
 }
