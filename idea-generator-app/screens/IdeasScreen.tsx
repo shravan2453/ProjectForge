@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
+import CustomHeader from '../screens/CustomHeader';
+
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Ideas'>;
 type ParsedIdea = {
@@ -96,7 +98,7 @@ export default function IdeasScreen({ route, navigation }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Your Project Ideas</Text>
+      <CustomHeader title="Your Project Ideas" showBack />
 
       {ideas.map((idea, index) => (
         <View key={index} style={styles.ideaCard}>
