@@ -1,19 +1,9 @@
+// FormScreen.tsx (Converted to NativeWind)
 import React, { useState } from 'react';
-import {
-  View,
-  TextInput,
-  Button,
-  StyleSheet,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, TextInput, Text, ScrollView, TouchableOpacity, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
-import { Pressable } from 'react-native';
 import CustomHeader from './CustomHeader';
-
-
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Form'>;
@@ -39,141 +29,65 @@ export default function FormScreen({ navigation }: Props) {
     }
   };
 
-    const labelsAndPlaceholders: Record<string, { label: string; placeholder: string }> = {
+  const labelsAndPlaceholders: Record<string, { label: string; placeholder: string }> = {
     project_type: {
-        label: 'What is this project for?',
-        placeholder: 'e.g. Hackathon, Startup, School, Personal Portfolio...',
+      label: 'What is this project for?',
+      placeholder: 'e.g. Hackathon, Startup, School, Personal Portfolio...',
     },
     project_interest: {
-        label: 'What topic are you interested in?',
-        placeholder: 'e.g. Sports, Law, Education, Aviation...',
+      label: 'What topic are you interested in?',
+      placeholder: 'e.g. Sports, Law, Education, Aviation...',
     },
     project_technical: {
-        label: 'What technical skills do you want to use?',
-        placeholder: 'e.g. Machine Learning, AI, React, No Code, None...',
+      label: 'What technical skills do you want to use?',
+      placeholder: 'e.g. Machine Learning, AI, React, No Code, None...',
     },
     project_potential: {
-        label: 'Do you have a rough idea of your project already?',
-        placeholder: 'e.g. Something related to analyzing sports stats...',
+      label: 'Do you have a rough idea of your project already?',
+      placeholder: 'e.g. Something related to analyzing sports stats...',
     },
     project_additional: {
-        label: 'Anything else we should consider?',
-        placeholder: 'e.g. You’re working with 2 friends, want to avoid web apps...',
+      label: 'Anything else we should consider?',
+      placeholder: 'e.g. You’re working with 2 friends, want to avoid web apps...',
     },
-    };
+  };
 
   return (
-    
-    <ScrollView contentContainerStyle={styles.container}>
-      <CustomHeader title="ProjectForge" />
-      <Text style={styles.header}>Welcome to ProjectForge</Text>
-      <Text style={styles.subheader}>Let’s build your next big idea!</Text>
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="bg-white px-6 py-4">
+      <CustomHeader title="ProjectForge" showBack={false} />
+
+      <Text className="text-3xl font-semibold text-black mb-2">Welcome to ProjectForge</Text>
+      <Text className="text-base text-gray-500 mb-6">Let’s build your next big idea!</Text>
+
       {Object.entries(form).map(([key, value]) => (
-        <View key={key} style={styles.inputGroup}>
-            <Text style={styles.label}>{labelsAndPlaceholders[key].label}</Text>
-            <TextInput
-            style={styles.input}
+        <View key={key} className="mb-6">
+          <Text className="text-sm font-medium text-gray-800 mb-2">
+            {labelsAndPlaceholders[key].label}
+          </Text>
+          <TextInput
+            className="border border-gray-300 bg-gray-100 text-black rounded-lg p-4 text-base"
             value={value}
             onChangeText={(text) => handleChange(key, text)}
             placeholder={labelsAndPlaceholders[key].placeholder}
             placeholderTextColor="#999"
-            />
+          />
         </View>
-        ))}
+      ))}
 
-
-      
-    <Pressable
-        style={({ pressed }) => [
-            styles.button,
-            !allFieldsFilled && styles.buttonDisabled,
-            pressed && { opacity: 0.8 },
-        ]}
+      <Pressable
+        className={`mt-4 py-4 rounded-xl items-center ${allFieldsFilled ? 'bg-black' : 'bg-gray-300'}`}
         disabled={!allFieldsFilled}
         onPress={handleSubmit}
-        >
-        <Text style={styles.buttonText}>Generate Ideas</Text>
-    </Pressable>
-    <TouchableOpacity
-      style={styles.secondaryButton}
-      onPress={() => navigation.navigate('Dashboard')}
-    >
-      <Text style={styles.secondaryButtonText}>Back to Dashboard</Text>
-    </TouchableOpacity>
+      >
+        <Text className="text-white text-base font-bold">Generate Ideas</Text>
+      </Pressable>
 
-    <TouchableOpacity
-      style={styles.secondaryButton}
-      onPress={() => navigation.navigate('HomeLogin')}
-    >
-      <Text style={styles.secondaryButtonText}>Log Out</Text>
-    </TouchableOpacity>
-
+      <TouchableOpacity
+        className="mt-4 py-3 items-center"
+        onPress={() => navigation.navigate('Dashboard')}
+      >
+        <Text className="text-gray-600 text-sm underline font-medium">Back to Dashboard</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-    backgroundColor: '#ffffff',
-    flexGrow: 1,
-  },
-  header: {
-    fontSize: 30,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: 8,
-    color: '#111',
-  },
-  subheader: {
-    fontSize: 16,
-    fontFamily: 'Inter',
-    marginBottom: 25,
-    color: '#666',
-  },
-  inputGroup: {
-    marginBottom: 24,
-  },
-  label: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    marginBottom: 6,
-    color: '#333',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 14,
-    borderRadius: 10,
-    fontSize: 16,
-    fontFamily: 'Inter',
-    color: '#000',
-    backgroundColor: '#fafafa',
-  },
-  button: {
-    marginTop: 10,
-    backgroundColor: '#111',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  buttonText: {
-    color: '#fff',
-    fontFamily: 'Inter-Bold',
-    fontSize: 16,
-  },
-  secondaryButton: {
-  marginTop: 12,
-  paddingVertical: 12,
-  alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: '#666',
-    fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    textDecorationLine: 'underline',
-  },
-
-});
