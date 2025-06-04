@@ -1,16 +1,15 @@
+// IdeasScreen.tsx (Converted to NativeWind)
 import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import CustomHeader from '../screens/CustomHeader';
-
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Ideas'>;
 type ParsedIdea = {
@@ -57,12 +56,9 @@ function parseIdeaBlocks(ideas: string[]): ParsedIdea[] {
   }));
 }
 
-
 export default function IdeasScreen({ route, navigation }: Props) {
   const { formData } = route.params;
-
   const [ideas, setIdeas] = useState<ParsedIdea[] | null>(null);
-
 
   useEffect(() => {
     async function fetchIdeas() {
@@ -77,8 +73,6 @@ export default function IdeasScreen({ route, navigation }: Props) {
         const rawIdeas = Array.isArray(data.ideas) ? data.ideas : Object.values(data)[0];
         const parsed = parseIdeaBlocks(rawIdeas);
         setIdeas(parsed);
-
-
       } catch (err) {
         console.error('❌ Fetch failed:', err);
       }
@@ -89,92 +83,38 @@ export default function IdeasScreen({ route, navigation }: Props) {
 
   if (!ideas) {
     return (
-      <View style={styles.loadingContainer}>
+      <View className="flex-1 items-center justify-center pt-24 bg-white">
         <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 20, color: '#555' }}>Generating your ideas...</Text>
+        <Text className="mt-5 text-gray-500">Generating your ideas...</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={{ paddingBottom: 60 }} className="bg-white px-5">
       <CustomHeader title="Your Project Ideas" showBack />
 
       {ideas.map((idea, index) => (
-        <View key={index} style={styles.ideaCard}>
-            <Text style={styles.ideaTitle}>{idea.name}</Text>
-            <Text style={styles.ideaLabel}>Overview:</Text>
-            <Text style={styles.ideaText}>{idea.overview}</Text>
-            <Text style={styles.ideaLabel}>Difficulty:</Text>
-            <Text style={styles.ideaText}>{idea.difficulty}</Text>
-            <Text style={styles.ideaLabel}>Timeline:</Text>
-            <Text style={styles.ideaText}>{idea.timeline}</Text>
+        <View key={index} className="bg-gray-100 border border-gray-300 rounded-xl p-4 mb-4">
+          <Text className="text-lg font-semibold text-black mb-1">{idea.name}</Text>
+
+          <Text className="text-sm text-gray-600 mt-2">Overview:</Text>
+          <Text className="text-base text-gray-800 leading-6">{idea.overview}</Text>
+
+          <Text className="text-sm text-gray-600 mt-2">Difficulty:</Text>
+          <Text className="text-base text-gray-800 leading-6">{idea.difficulty}</Text>
+
+          <Text className="text-sm text-gray-600 mt-2">Timeline:</Text>
+          <Text className="text-base text-gray-800 leading-6">{idea.timeline}</Text>
         </View>
-        ))}
+      ))}
 
-
-      <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
-        <Text style={styles.buttonText}>← Back to Form</Text>
+      <TouchableOpacity
+        className="mt-5 bg-black py-4 rounded-xl items-center"
+        onPress={() => navigation.goBack()}
+      >
+        <Text className="text-white text-base font-bold">← Back to Form</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    paddingBottom: 60,
-    backgroundColor: '#fff',
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 100,
-    backgroundColor: '#fff',
-  },
-  ideaCard: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
-    borderColor: '#ddd',
-    borderWidth: 1,
-  },
-  button: {
-    marginTop: 20,
-    backgroundColor: '#000',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  header: {
-  fontSize: 26,
-  fontFamily: 'Inter-SemiBold',
-  marginBottom: 20,
-  color: '#000',
-},
-ideaTitle: {
-  fontSize: 18,
-  fontFamily: 'Inter-SemiBold',
-  marginBottom: 5,
-  color: '#000',
-},
-ideaLabel: {
-  fontFamily: 'Inter-Medium',
-  marginTop: 10,
-  color: '#555',
-},
-ideaText: {
-  fontSize: 16,
-  fontFamily: 'Inter',
-  color: '#333',
-  lineHeight: 22,
-},
-
-});

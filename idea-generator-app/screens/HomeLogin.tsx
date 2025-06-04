@@ -1,12 +1,11 @@
+// HomeLogin.tsx (converted to NativeWind)
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../App'; // adjust if needed
+import { RootStackParamList } from '../App';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
-// (Unchanged imports + state)
 
 export default function LoginLandingPage() {
   const navigation = useNavigation<NavigationProp>();
@@ -14,22 +13,24 @@ export default function LoginLandingPage() {
   const [password, setPassword] = useState('');
 
   return (
-    <View style={styles.container}>
-      <View style={styles.logoContainer}>
-        <Text style={styles.title}>Welcome to ProjectForge</Text>
-        <Text style={styles.subtitle}>Fuel your creativity. Build your vision.</Text>
+    <View className="flex-1 justify-center items-center bg-white px-6">
+      <View className="w-full items-center mb-10 px-6">
+        <Text className="text-3xl font-bold text-black mb-2 text-center">Welcome to</Text>
+        <Text className="text-5xl font-extrabold text-black text-center">ProjectForge</Text>
+        <Text className="text-base text-gray-500 text-center mt-2">Fuel your creativity. Build your vision.</Text>
       </View>
 
-      <View style={styles.formContainer}>
+
+      <View className="w-full space-y-4">
         <TextInput
-          style={styles.input}
+          className="w-full bg-gray-100 text-black px-4 py-3 rounded-lg text-base"
           placeholder="Username"
           placeholderTextColor="#999"
           value={username}
           onChangeText={setUsername}
         />
         <TextInput
-          style={styles.input}
+          className="w-full bg-gray-100 text-black px-4 py-3 rounded-lg text-base"
           placeholder="Password"
           placeholderTextColor="#999"
           secureTextEntry
@@ -38,79 +39,16 @@ export default function LoginLandingPage() {
         />
 
         <TouchableOpacity
-          style={styles.button}
+          className="bg-black py-3 rounded-xl items-center shadow-md"
           onPress={() => navigation.navigate('Dashboard')}
         >
-          <Text style={styles.buttonText}>Login</Text>
+          <Text className="text-white text-lg font-semibold">Login</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity>
-          <Text style={styles.signupText}>Don't have an account? Sign Up</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+          <Text className="text-center text-gray-500 underline mt-3">Don't have an account? Sign Up</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#000000',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#555555',
-    textAlign: 'center',
-    maxWidth: 280,
-  },
-  formContainer: {
-    width: '100%',
-    maxWidth: 320,       // ✅ limits how wide the form can get
-    alignItems: 'center',
-  },
-  input: {
-    width: '100%',
-    backgroundColor: '#F2F2F2',
-    padding: 14,
-    borderRadius: 10,
-    color: '#000',
-    marginBottom: 16,
-    fontSize: 16,
-  },
-  button: {
-    width: '100%',       // ✅ ensures button aligns with inputs
-    backgroundColor: '#000000',
-    paddingVertical: 14,
-    borderRadius: 12,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 5,
-    marginBottom: 12,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  signupText: {
-    color: '#555555',
-    marginTop: 10,
-    textDecorationLine: 'underline',
-  },
-});

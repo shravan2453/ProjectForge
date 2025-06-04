@@ -17,7 +17,7 @@ from langgraph.checkpoint.memory import MemorySaver
 
 load_dotenv()  # Load environment variables from .env file if it exists
 
-openai_api_key = os.getenv("OPENAI_API_KEY")  # Use the OpenAI API key
+openai_api_key = os.getenv("gemini_api_key")  # Use the OpenAI API key
 tavily_api_key = os.getenv("TAVILY_API_KEY")
 
 
