@@ -11,7 +11,6 @@ import IdeasScreen from './screens/IdeasScreen';
 import ProjectDashboard from './screens/ProjectDashboard';
 
 
-
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export type RootStackParamList = {
