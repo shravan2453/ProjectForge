@@ -4,13 +4,21 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useFonts } from 'expo-font';
 import { View, ActivityIndicator } from 'react-native';
 
-import HomeScreen from './screens/HomeScreen';
+import HomeLogin from './screens/HomeLogin';
+//import Signup from './screens/Signup';
+import FormScreen from './screens/FormScreen';
 import IdeasScreen from './screens/IdeasScreen';
+import ProjectDashboard from './screens/ProjectDashboard';
+
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export type RootStackParamList = {
-  Home: undefined;
+  HomeLogin: undefined;
+  Signup: undefined;
+  Dashboard: undefined;
+  Form: undefined;
   Ideas: { formData: Record<string, string> };
 };
 
@@ -22,8 +30,6 @@ export default function App() {
     'Inter-Bold': require('./assets/fonts/Inter_18pt-Bold.ttf'),
   });
 
-
-
   if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -34,10 +40,20 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator initialRouteName="HomeLogin">
         <Stack.Screen
-          name="Home"
-          component={HomeScreen}
+          name="HomeLogin"
+          component={HomeLogin}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Dashboard"
+          component={ProjectDashboard}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Form"
+          component={FormScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

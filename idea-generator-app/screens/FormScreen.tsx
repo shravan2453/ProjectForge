@@ -11,14 +11,14 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import { Pressable } from 'react-native';
-import CustomHeader from '../screens/CustomHeader';
+import CustomHeader from './CustomHeader';
 
 
 
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'Form'>;
 
-export default function HomeScreen({ navigation }: Props) {
+export default function FormScreen({ navigation }: Props) {
   const [form, setForm] = useState({
     project_type: '',
     project_interest: '',
@@ -94,6 +94,19 @@ export default function HomeScreen({ navigation }: Props) {
         >
         <Text style={styles.buttonText}>Generate Ideas</Text>
     </Pressable>
+    <TouchableOpacity
+      style={styles.secondaryButton}
+      onPress={() => navigation.navigate('Dashboard')}
+    >
+      <Text style={styles.secondaryButtonText}>Back to Dashboard</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      style={styles.secondaryButton}
+      onPress={() => navigation.navigate('HomeLogin')}
+    >
+      <Text style={styles.secondaryButtonText}>Log Out</Text>
+    </TouchableOpacity>
 
     </ScrollView>
   );
@@ -151,4 +164,16 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     fontSize: 16,
   },
+  secondaryButton: {
+  marginTop: 12,
+  paddingVertical: 12,
+  alignItems: 'center',
+  },
+  secondaryButtonText: {
+    color: '#666',
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  },
+
 });
