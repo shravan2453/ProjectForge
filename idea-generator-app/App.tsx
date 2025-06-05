@@ -19,7 +19,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export type RootStackParamList = {
   HomeLogin: undefined;
   SignUp: undefined;
-  Dashboard: { firstName: string };
+  Dashboard: undefined;
   Form: undefined;
   Ideas: { formData: Record<string, string> };
 };
