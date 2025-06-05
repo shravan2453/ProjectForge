@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 
+
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function LoginLandingPage() {
@@ -45,7 +46,7 @@ export default function LoginLandingPage() {
           <Text className="text-white text-lg font-semibold">Login</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+        <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
           <Text className="text-center text-gray-500 underline mt-3">Don't have an account? Sign Up</Text>
         </TouchableOpacity>
       </View>

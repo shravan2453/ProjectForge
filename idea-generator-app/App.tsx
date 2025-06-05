@@ -9,13 +9,16 @@ import HomeLogin from './screens/HomeLogin';
 import FormScreen from './screens/FormScreen';
 import IdeasScreen from './screens/IdeasScreen';
 import ProjectDashboard from './screens/ProjectDashboard';
+import SignUpScreen from './screens/SignUpScreen';
+
+
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export type RootStackParamList = {
   HomeLogin: undefined;
-  Signup: undefined;
+  SignUp: undefined;
   Dashboard: undefined;
   Form: undefined;
   Ideas: { formData: Record<string, string> };
@@ -43,6 +46,11 @@ export default function App() {
         <Stack.Screen
           name="HomeLogin"
           component={HomeLogin}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="SignUp"
+          component={SignUpScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
