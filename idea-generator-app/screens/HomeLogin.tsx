@@ -41,8 +41,7 @@ export default function LoginLandingPage() {
 
         <TouchableOpacity
           className="bg-black py-3 rounded-xl items-center shadow-md"
-          onPress={() => navigation.navigate('Dashboard', { firstName })
-}
+          onPress={() => navigation.navigate('Dashboard')}
         >
           <Text className="text-white text-lg font-semibold">Login</Text>
         </TouchableOpacity>
