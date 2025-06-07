@@ -1,4 +1,4 @@
-// IdeasScreen.tsx (Converted to NativeWind)
+// IdeasScreen.tsx
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -27,38 +27,44 @@ function clean(text: string): string {
     .trim();
 }
 
-function parseIdeaBlocks(ideas: string[]): ParsedIdea[] {
+function parseIdeaBlocks(lines: string[]): ParsedIdea[] {
   const structured: ParsedIdea[] = [];
   let current: Partial<ParsedIdea> = {};
 
-  ideas.forEach((line) => {
-    const cleanLine = clean(line);
-
-    if (cleanLine.startsWith('Project Name:')) {
+  lines.forEach((rawLine) => {
+    const line = rawLine.trim();
+    if (line.startsWith('Project Name:')) {
       if (current.name) structured.push(current as ParsedIdea);
-      current = { name: cleanLine.replace('Project Name:', '').trim() };
-    } else if (cleanLine.startsWith('Project Overview:')) {
-      current.overview = cleanLine.replace('Project Overview:', '').trim();
-    } else if (cleanLine.startsWith('Project Difficulty:')) {
-      current.difficulty = cleanLine.replace('Project Difficulty:', '').trim();
-    } else if (cleanLine.startsWith('Project Timeline:')) {
-      current.timeline = cleanLine.replace('Project Timeline:', '').trim();
+      current = { name: line.replace('Project Name:', '').trim() };
+    } else if (line.startsWith('Project Overview:')) {
+      current.overview = line.replace('Project Overview:', '').trim();
+    } else if (line.startsWith('Project Difficulty:')) {
+      current.difficulty = line.replace('Project Difficulty:', '').trim();
+    } else if (line.startsWith('Project Timeline:')) {
+      current.timeline = line.replace('Project Timeline:', '').trim();
+    } else if (line !== '') {
+      // Append to the last non-empty field for multiline support
+      if (current.timeline) {
+        current.timeline += ' ' + line;
+      } else if (current.difficulty) {
+        current.difficulty += ' ' + line;
+      } else if (current.overview) {
+        current.overview += ' ' + line;
+      } else if (current.name) {
+        current.name += ' ' + line;
+      }
     }
   });
 
   if (current.name) structured.push(current as ParsedIdea);
-
-  return structured.map((item) => ({
-    name: clean(item.name || ''),
-    overview: clean(item.overview || ''),
-    difficulty: clean(item.difficulty || ''),
-    timeline: clean(item.timeline || ''),
-  }));
+  return structured;
 }
+
 
 export default function IdeasScreen({ route, navigation }: Props) {
   const { formData } = route.params;
   const [ideas, setIdeas] = useState<ParsedIdea[] | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchIdeas() {
@@ -71,7 +77,9 @@ export default function IdeasScreen({ route, navigation }: Props) {
 
         const data = await response.json();
         const rawIdeas = Array.isArray(data.ideas) ? data.ideas : Object.values(data)[0];
-        const parsed = parseIdeaBlocks(rawIdeas);
+        const parsed = parseIdeaBlocks(
+          rawIdeas.flatMap((idea: string) => idea.split('\n'))
+        );
         setIdeas(parsed);
       } catch (err) {
         console.error('❌ Fetch failed:', err);
@@ -90,31 +98,90 @@ export default function IdeasScreen({ route, navigation }: Props) {
     );
   }
 
+  const handleSelectIdea = (index: number) => {
+    setSelectedIndex(index === selectedIndex ? null : index);
+  };
+
   return (
-    <ScrollView contentContainerStyle={{ paddingBottom: 60 }} className="bg-white px-5">
-      <CustomHeader title="Your Project Ideas" showBack />
+    <ScrollView contentContainerStyle={{ paddingBottom: 100 }} className="bg-white px-5">
+      <View className="mt-6">
+        <CustomHeader title="Your Project Ideas" showBack />
+      </View>
 
       {ideas.map((idea, index) => (
-        <View key={index} className="bg-gray-100 border border-gray-300 rounded-xl p-4 mb-4">
-          <Text className="text-lg font-semibold text-black mb-1">{idea.name}</Text>
+        <TouchableOpacity
+          key={index}
+          onPress={() => handleSelectIdea(index)}
+          style={{
+            marginTop: 16,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: selectedIndex === index ? '#000' : '#e5e7eb',
+            backgroundColor: '#fff',
+            padding: 16,
+            marginBottom: 16,
+            shadowColor: '#000',
+            shadowOpacity: 0.04,
+            shadowRadius: 4,
+            shadowOffset: { width: 0, height: 2 },
+          }}
+        >
+          <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#111' }}>{idea.name}</Text>
 
-          <Text className="text-sm text-gray-600 mt-2">Overview:</Text>
-          <Text className="text-base text-gray-800 leading-6">{idea.overview}</Text>
+          <Text style={{ color: '#6b7280', fontSize: 13, marginTop: 10 }}>Overview:</Text>
+          <Text style={{ color: '#111', fontSize: 15, marginTop: 2 }}>{idea.overview}</Text>
 
-          <Text className="text-sm text-gray-600 mt-2">Difficulty:</Text>
-          <Text className="text-base text-gray-800 leading-6">{idea.difficulty}</Text>
+          <Text style={{ color: '#6b7280', fontSize: 13, marginTop: 10 }}>Difficulty:</Text>
+          <Text style={{ color: '#111', fontSize: 15, marginTop: 2 }}>{idea.difficulty}</Text>
 
-          <Text className="text-sm text-gray-600 mt-2">Timeline:</Text>
-          <Text className="text-base text-gray-800 leading-6">{idea.timeline}</Text>
-        </View>
+          <Text style={{ color: '#6b7280', fontSize: 13, marginTop: 10 }}>Timeline:</Text>
+          <Text style={{ color: '#111', fontSize: 15, marginTop: 2 }}>{idea.timeline}</Text>
+        </TouchableOpacity>
       ))}
 
-      <TouchableOpacity
-        className="mt-5 bg-black py-4 rounded-xl items-center"
-        onPress={() => navigation.goBack()}
-      >
-        <Text className="text-white text-base font-bold">← Back to Form</Text>
-      </TouchableOpacity>
+      <View className="mt-6 space-y-3">
+        <TouchableOpacity
+          disabled={selectedIndex === null}
+          className={`py-4 rounded-xl items-center ${
+            selectedIndex === null ? 'bg-gray-400' : 'bg-black'
+          }`}
+          onPress={() => {
+            if (selectedIndex !== null) {
+              const selected = ideas[selectedIndex];
+              console.log('Liked idea:', selected.name);
+              // Add future navigation here
+            }
+          }}
+        >
+          <Text className="text-white text-base font-bold">I like this idea</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="py-4 rounded-xl items-center border border-black"
+          onPress={() => {
+            if (ideas) {
+              navigation.navigate("Chat", {
+                  formInputs: formData,
+                  rejectedIdeas: ideas.map(i => i.name),
+                  previousMessages: [],
+                }
+              );
+            }
+          }}
+        >
+          <Text className="text-black text-base font-bold">
+            Chat with an agent to find an idea for you!
+          </Text>
+        </TouchableOpacity>
+
+
+        <TouchableOpacity
+          className="mt-4 py-3 rounded-xl items-center bg-gray-100 border border-gray-400"
+          onPress={() => navigation.goBack()}
+        >
+          <Text className="text-gray-700 text-base">← Back to Form</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }

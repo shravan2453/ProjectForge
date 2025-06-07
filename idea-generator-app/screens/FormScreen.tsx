@@ -56,12 +56,12 @@ export default function FormScreen({ navigation }: Props) {
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="bg-white px-6 py-4">
       <CustomHeader title="ProjectForge" showBack={false} />
 
-      <Text className="text-3xl font-semibold text-black mb-2">Welcome to ProjectForge</Text>
+      <Text className="mt-3 text-3xl font-semibold text-black mb-2">Welcome to ProjectForge</Text>
       <Text className="text-base text-gray-500 mb-6">Let’s build your next big idea!</Text>
 
       {Object.entries(form).map(([key, value]) => (
         <View key={key} className="mb-6">
-          <Text className="text-sm font-medium text-gray-800 mb-2">
+          <Text className="mt-0 text-sm font-medium text-gray-800 mb-0">
             {labelsAndPlaceholders[key].label}
           </Text>
           <TextInput
@@ -75,7 +75,7 @@ export default function FormScreen({ navigation }: Props) {
       ))}
 
       <Pressable
-        className={`mt-4 py-4 rounded-xl items-center ${allFieldsFilled ? 'bg-black' : 'bg-gray-300'}`}
+        className={`mt-0 py-4 rounded-xl items-center ${allFieldsFilled ? 'bg-black' : 'bg-gray-300'}`}
         disabled={!allFieldsFilled}
         onPress={handleSubmit}
       >

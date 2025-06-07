@@ -10,7 +10,15 @@ import FormScreen from './screens/FormScreen';
 import IdeasScreen from './screens/IdeasScreen';
 import ProjectDashboard from './screens/ProjectDashboard';
 import SignUpScreen from './screens/SignUpScreen';
+import ChatScreen from './screens/ChatScreen'; 
 
+export type FormDataType = {
+  project_type: string;
+  project_interest: string;
+  project_technical: string;
+  project_potential: string;
+  project_additional: string;
+};
 
 
 
@@ -21,8 +29,14 @@ export type RootStackParamList = {
   SignUp: undefined;
   Dashboard: undefined;
   Form: undefined;
-  Ideas: { formData: Record<string, string> };
+  Ideas: { formData: FormDataType };
+  Chat: {
+    formInputs: FormDataType;
+    rejectedIdeas: string[];
+    previousMessages: { role: string; content: string }[];
+  };
 };
+
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -66,6 +80,11 @@ export default function App() {
         <Stack.Screen
           name="Ideas"
           component={IdeasScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="Chat" 
+          component={ChatScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>      
