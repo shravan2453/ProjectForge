@@ -8,16 +8,10 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../App';
+import { RootStackParamList, ParsedIdea } from '../App';
 import CustomHeader from '../screens/CustomHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Ideas'>;
-type ParsedIdea = {
-  name: string;
-  overview: string;
-  difficulty: string;
-  timeline: string;
-};
 
 function clean(text: string): string {
   return text
@@ -35,7 +29,7 @@ function parseIdeaBlocks(lines: string[]): ParsedIdea[] {
     const line = rawLine.trim();
     if (line.startsWith('Project Name:')) {
       if (current.name) structured.push(current as ParsedIdea);
-      current = { name: line.replace('Project Name:', '').trim() };
+      current = { name: clean(line.replace('Project Name:', '')).trim() };
     } else if (line.startsWith('Project Overview:')) {
       current.overview = line.replace('Project Overview:', '').trim();
     } else if (line.startsWith('Project Difficulty:')) {
@@ -62,11 +56,16 @@ function parseIdeaBlocks(lines: string[]): ParsedIdea[] {
 
 
 export default function IdeasScreen({ route, navigation }: Props) {
-  const { formData } = route.params;
+  const { formData, retainedIdeas } = route.params;
   const [ideas, setIdeas] = useState<ParsedIdea[] | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
+    if (retainedIdeas) {
+      setIdeas(retainedIdeas);
+      return; // Stop here if ideas are retained
+    }
+
     async function fetchIdeas() {
       try {
         const response = await fetch('http://127.0.0.1:8000/generate', {
@@ -159,14 +158,7 @@ export default function IdeasScreen({ route, navigation }: Props) {
         <TouchableOpacity
           className="py-4 rounded-xl items-center border border-black"
           onPress={() => {
-            if (ideas) {
-              navigation.navigate("Chat", {
-                  formInputs: formData,
-                  rejectedIdeas: ideas.map(i => i.name),
-                  previousMessages: [],
-                }
-              );
-            }
+            navigation.navigate("Chat", { previousMessages: [] })
           }}
         >
           <Text className="text-black text-base font-bold">
@@ -177,7 +169,7 @@ export default function IdeasScreen({ route, navigation }: Props) {
 
         <TouchableOpacity
           className="mt-4 py-3 rounded-xl items-center bg-gray-100 border border-gray-400"
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate('Form')}
         >
           <Text className="text-gray-700 text-base">← Back to Form</Text>
         </TouchableOpacity>

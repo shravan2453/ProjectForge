@@ -1,11 +1,12 @@
 # ✅ chatbot_langgraph.py (fully fixed with RunnableLambda)
 from langgraph.graph import StateGraph, END
 from langchain_core.runnables import RunnableLambda
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Annotated
 import google.generativeai as genai
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
+from langgraph.graph.message import add_messages
 
 load_dotenv()
 genai.configure(api_key=os.getenv("gemini_api_key"))
@@ -13,7 +14,7 @@ genai.configure(api_key=os.getenv("gemini_api_key"))
 model = genai.GenerativeModel("gemini-2.0-flash")
 
 class ProjectChatState(BaseModel):
-    messages: List[Dict[str, str]] = []
+    messages: Annotated[List[Dict[str, str]], add_messages] = []
     accepted: bool = False
     final_idea: Optional[str] = None
 
