@@ -1,28 +1,30 @@
-from fastapi import FastAPI, Request
+# main.py  ---------------------------------------------------------------
+from fastapi import FastAPI, Request, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from typing import List, Dict, Optional
+import os, uuid
 import google.generativeai as genai
-import os
 from dotenv import load_dotenv
-from typing import List, Dict
 
-from new_idea_chatbot import get_chat_graph, ProjectChatState, build_initial_context
-
+# ───── Env & Gemini model ───────────────────────────────────────────────
 load_dotenv()
 genai.configure(api_key=os.getenv("gemini_api_key"))
-model = genai.GenerativeModel("gemini-2.0-flash")
+gemini_model = genai.GenerativeModel("gemini-2.0-flash")
 
-app = FastAPI()  # ✅ ONLY ONCE
-
+# ───── FastAPI instance & CORS ──────────────────────────────────────────
+app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],          # <- loosen later for prod
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- /generate route ---
+# ════════════════════════════════════════════════════════════════════════
+# 1)  GENERATE IDEAS (Gemini, no chat / memory)
+# ════════════════════════════════════════════════════════════════════════
 class InputData(BaseModel):
     project_type: str
     project_interest: str
@@ -54,74 +56,22 @@ def generate_ideas(data: InputData):
 
     Make sure each idea is separated by a blank line and follows this exact format.
     """
+    raw = gemini_model.generate_content(prompt).text.strip()
 
-    response = model.generate_content(prompt)
-    raw_output = response.text.strip()
-
-    ideas = []
-    current_idea = []
-    for line in raw_output.split('\n'):
+    # Split into individual ideas (same logic as before)
+    ideas, current = [], []
+    for line in raw.splitlines():
         if line.strip():
-            current_idea.append(line.strip())
-        elif current_idea:
-            ideas.append('\n'.join(current_idea))
-            current_idea = []
-    if current_idea:
-        ideas.append('\n'.join(current_idea))
-
+            current.append(line.strip())
+        elif current:
+            ideas.append("\n".join(current)); current = []
+    if current:
+        ideas.append("\n".join(current))
     return {"ideas": ideas}
 
-# --- /chat route ---
-class MessageInput(BaseModel):
-    user_message: str
-    previous_messages: List[Dict[str, str]]
-    form_inputs: Dict[str, str]
-    rejected_ideas: List[str]
-
-def normalize_message(msg):
-    if isinstance(msg, dict):
-        return msg
-    return {
-        "role": getattr(msg, "type", "assistant"),
-        "content": getattr(msg, "content", "")
-    }
-
-@app.post("/chat")
-async def chat(request: Request):
-    try:
-        body = await request.json()
-        user_message = body.get("user_message")
-        previous_messages = body.get("previous_messages", [])
-        form_inputs = body.get("form_inputs", {})
-        rejected_ideas = body.get("rejected_ideas", [])
-
-        cleaned_messages = [normalize_message(m) for m in previous_messages]
-        cleaned_messages.append({"role": "user", "content": user_message})
-
-        chat_graph = get_chat_graph()
-        state = {
-            "messages": cleaned_messages,
-            "form_inputs": form_inputs,
-            "rejected_ideas": rejected_ideas
-        }
-
-        for step in chat_graph.stream(state):
-            state.update(step)
-
-        return JSONResponse(content={
-            "messages": state.get("messages", []),
-            "accepted": state.get("accepted", False),
-            "final_idea": state.get("final_idea", None)
-        })
-
-    except Exception as e:
-        print("🔥 Chat endpoint error:", e)
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
-from fastapi import Request
-import google.generativeai as genai
-from fastapi.responses import JSONResponse
-
+# ════════════════════════════════════════════════════════════════════════
+# 2)  SIMPLE GEMINI CHAT  (unchanged)
+# ════════════════════════════════════════════════════════════════════════
 prompt_intro = """
 You are an extremely skilled idea generator, that can come up with extremely creative and applicable ideas for 
 projects for students/users that want to create projects either by themselves or in a group. These ideas may be fully thought out or 
@@ -144,28 +94,54 @@ Project Timeline: [hours per week and total weeks the project will take]
 @app.post("/simple-chat")
 async def simple_chat(request: Request):
     try:
-        body = await request.json()
+        body     = await request.json()
         messages = body.get("messages", [])
 
-        # Convert to Gemini-compatible chat messages
         chat_history = [{"role": m["role"], "parts": [m["content"]]} for m in messages]
-
-        model = genai.GenerativeModel("gemini-2.0-flash")
-        convo = model.start_chat(history=chat_history)
-        response = convo.send_message(prompt_intro)
-
-        reply = response.text.strip()
-
-        final_idea = None
-        if reply.startswith("Project Name:"):
-            final_idea = reply
+        convo  = gemini_model.start_chat(history=chat_history)
+        reply  = convo.send_message(prompt_intro).text.strip()
 
         return JSONResponse(content={
             "assistant_message": reply,
-            "final_idea": final_idea
+            "final_idea": reply if reply.startswith("Project Name:") else None
         })
-
     except Exception as e:
         print("🔥 simple-chat error:", e)
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+# ════════════════════════════════════════════════════════════════════════
+# 3)  LANGGRAPH CHAT  (/lg-chat)
+# ════════════════════════════════════════════════════════════════════════
+from chatbot_backend import graph   # <-- make sure this file exports `graph`
+
+class LGRequest(BaseModel):
+    thread_id: Optional[str] = None
+    messages: List[Dict[str, str]]
+
+class LGResponse(BaseModel):
+    assistant_message: str
+    final_idea: Optional[str]
+    thread_id: str
+
+@app.post("/lg-chat", response_model=LGResponse)
+def lg_chat(data: LGRequest = Body(...)):
+    thread_id = data.thread_id or uuid.uuid4().hex
+    last_user = next(m for m in reversed(data.messages) if m["role"] == "user")
+
+    init_state = {
+        "messages":       [last_user],
+        "rejected_ideas": [],
+        "preferences":    [],
+    }
+    cfg = {"configurable": {"thread_id": thread_id}}
+
+    # run exactly one LangGraph pass
+    final_state = None
+    for final_state in graph.stream(init_state, cfg, stream_mode="values"):
+        pass
+
+    return LGResponse(
+        assistant_message = final_state["messages"][-1].content,
+        final_idea        = final_state.get("accepted_idea"),
+        thread_id         = thread_id,
+    )

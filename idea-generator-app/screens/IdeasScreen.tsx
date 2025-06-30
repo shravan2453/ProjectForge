@@ -92,7 +92,7 @@ export default function IdeasScreen({ route, navigation }: Props) {
     return (
       <View className="flex-1 items-center justify-center pt-24 bg-white">
         <ActivityIndicator size="large" />
-        <Text className="mt-5 text-gray-500">Generating your ideas...</Text>
+        <Text className="mt-5 text-gray-600" style={{ fontFamily: 'Klados-Bold'}}>Generating your ideas...</Text>
       </View>
     );
   }
@@ -125,16 +125,16 @@ export default function IdeasScreen({ route, navigation }: Props) {
             shadowOffset: { width: 0, height: 2 },
           }}
         >
-          <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#111' }}>{idea.name}</Text>
+          <Text style={{ fontWeight: 'bold', fontSize: 18, color: '#111' }}>{idea.name}</Text>
 
-          <Text style={{ color: '#6b7280', fontSize: 13, marginTop: 10 }}>Overview:</Text>
-          <Text style={{ color: '#111', fontSize: 15, marginTop: 2 }}>{idea.overview}</Text>
+          <Text style={{ fontFamily: 'Klados-Bold', color: '#6b7280', fontSize: 13, marginTop: 10 }}>Overview:</Text>
+          <Text style={{ fontFamily: 'Klados-Bold', color: '#111', fontSize: 15, marginTop: 2 }}>{idea.overview}</Text>
 
           <Text style={{ color: '#6b7280', fontSize: 13, marginTop: 10 }}>Difficulty:</Text>
-          <Text style={{ color: '#111', fontSize: 15, marginTop: 2 }}>{idea.difficulty}</Text>
+          <Text style={{ fontFamily: 'Klados-Bold', color: '#111', fontSize: 15, marginTop: 2 }}>{idea.difficulty}</Text>
 
-          <Text style={{ color: '#6b7280', fontSize: 13, marginTop: 10 }}>Timeline:</Text>
-          <Text style={{ color: '#111', fontSize: 15, marginTop: 2 }}>{idea.timeline}</Text>
+          <Text style={{ fontFamily: 'Klados-Bold', color: '#6b7280', fontSize: 13, marginTop: 10 }}>Timeline:</Text>
+          <Text style={{ fontFamily: 'Klados-Bold', color: '#111', fontSize: 15, marginTop: 2 }}>{idea.timeline}</Text>
         </TouchableOpacity>
       ))}
 
@@ -152,16 +152,25 @@ export default function IdeasScreen({ route, navigation }: Props) {
             }
           }}
         >
-          <Text className="text-white text-base font-bold">I like this idea</Text>
+          <Text className="text-white text-base font-bold" style={{ fontFamily: 'Klados-Bold'}}>I like this idea</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          className="py-4 rounded-xl items-center border border-black"
+          className="py-4 rounded-xl items-center border border-black"  
           onPress={() => {
-            navigation.navigate("Chat", { previousMessages: [] })
+            navigation.navigate('Chat', {
+              previousMessages: [],                 
+              preferences: [
+                formData.project_type,
+                formData.project_interest,
+                formData.project_technical,
+                formData.project_potential,
+                formData.project_additional
+              ].filter(Boolean)                
+            });
           }}
         >
-          <Text className="text-black text-base font-bold">
+          <Text className="text-black text-base font-bold" style={{ fontFamily: 'Klados-Bold'}}>
             Chat with an agent to find an idea for you!
           </Text>
         </TouchableOpacity>

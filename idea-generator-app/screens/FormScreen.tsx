@@ -54,14 +54,14 @@ export default function FormScreen({ navigation }: Props) {
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="bg-white px-6 py-4">
-      <CustomHeader title="ProjectForge" showBack={false} />
+      <CustomHeader title="Klados AI" showBack={false} />
 
-      <Text className="mt-3 text-3xl font-semibold text-black mb-2">Welcome to ProjectForge</Text>
-      <Text className="text-base text-gray-500 mb-6">Let’s build your next big idea!</Text>
+      <Text className="mt-4 text-3xl font-semibold text-black mb-2 text-center" style={{ fontFamily: 'Klados-Bold' }}>Welcome to Klados</Text>
+      <Text className="text-base text-gray-500 mb-6 justify-center text-center" style={{ fontFamily: 'Klados-Italic' }}>Let’s Build Your Next Big Idea.</Text>
 
       {Object.entries(form).map(([key, value]) => (
         <View key={key} className="mb-6">
-          <Text className="mt-0 text-sm font-medium text-gray-800 mb-0">
+          <Text className="mt-0 text-sm font-medium text-gray-800 mb-1">
             {labelsAndPlaceholders[key].label}
           </Text>
           <TextInput
@@ -75,18 +75,18 @@ export default function FormScreen({ navigation }: Props) {
       ))}
 
       <Pressable
-        className={`mt-0 py-4 rounded-xl items-center ${allFieldsFilled ? 'bg-black' : 'bg-gray-300'}`}
+        className={`-mt-1 -mb-3 py-4 rounded-xl items-center ${allFieldsFilled ? 'bg-black' : 'bg-gray-400'}`}
         disabled={!allFieldsFilled}
         onPress={handleSubmit}
       >
-        <Text className="text-white text-base font-bold">Generate Ideas</Text>
+        <Text className="text-white text-base font-bold" style={{ fontFamily: 'Klados-Bold' }}>Generate Ideas</Text>
       </Pressable>
 
       <TouchableOpacity
         className="mt-4 py-3 items-center"
         onPress={() => navigation.navigate('Dashboard')}
       >
-        <Text className="text-gray-600 text-sm underline font-medium">Back to Dashboard</Text>
+        <Text className="text-gray-600 text-sm underline font-medium" style={{ fontFamily: 'Klados-Bold' }}>Back to Dashboard</Text>
       </TouchableOpacity>
     </ScrollView>
   );

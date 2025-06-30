@@ -36,7 +36,8 @@ export type RootStackParamList = {
   Form: undefined;
   Ideas: { formData: FormDataType; retainedIdeas?: ParsedIdea[] };
   Chat: {
-  previousMessages: { role: string; content: string }[];
+    previousMessages: { role: string; content: string }[];
+    preferences: string[];
   };
 };
 
@@ -46,6 +47,10 @@ export default function App() {
     'Inter-Medium': require('./assets/fonts/Inter_18pt-Medium.ttf'),
     'Inter-SemiBold': require('./assets/fonts/Inter_18pt-SemiBold.ttf'),
     'Inter-Bold': require('./assets/fonts/Inter_18pt-Bold.ttf'),
+    'Klados-Main': require('./assets/fonts/Poppins-Light.ttf'),
+    'Klados-Bold': require('./assets/fonts/Poppins-SemiBold.ttf'),
+    'Klados-Italic': require('./assets/fonts/Poppins-Italic.ttf'),
+    'Klados-Ultra-Bold': require('./assets/fonts/Poppins-Bold.ttf'),
   });
 
   if (!fontsLoaded) {

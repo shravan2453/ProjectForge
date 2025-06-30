@@ -32,7 +32,7 @@ export default function SignUpScreen() {
   return (
     <View className="flex-1 bg-white justify-center px-6">
       <Text className="text-2xl font-extrabold text-black text-center mb-8">
-        Sign Up With ProjectForge!
+        Sign Up With Klados
       </Text>
 
       <TextInput

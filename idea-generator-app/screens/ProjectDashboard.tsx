@@ -13,10 +13,10 @@ export default function ProjectDashboard() {
 
   return (
     <View className="flex-1 bg-white px-6 justify-center items-center">
-      <Text className="text-3xl font-bold text-black mb-4">Your Projects</Text>
+      <Text className="text-3xl text-black mb-4" style={{ fontFamily: 'Klados-Bold' }}>Your Projects</Text>
 
       {projects.length === 0 ? (
-        <Text className="text-base text-gray-500 mb-8 text-center">
+        <Text className="text-base text-gray-500 mb-8 text-center" style={{ fontFamily: 'Klados-Bold' }}>
           No projects yet. Create your first one!
         </Text>
       ) : (
@@ -24,7 +24,7 @@ export default function ProjectDashboard() {
           data={projects}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <View className="w-full border border-gray-300 rounded-lg p-4 mb-3">
+            <View className="w-full border border-gray-300 rounded-lg p-4 mb-3"> 
               <Text className="text-black text-base">{item.name}</Text>
             </View>
           )}
@@ -35,14 +35,14 @@ export default function ProjectDashboard() {
         className="bg-black py-4 px-10 rounded-xl mt-6"
         onPress={() => navigation.navigate('Form')}
       >
-        <Text className="text-white text-base font-semibold">+ Create New Project</Text>
+        <Text className="text-white text-base font-semibold" style={{ fontFamily: 'Klados-Bold' }}>+ Create New Project</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         className="mt-5"
         onPress={() => navigation.navigate('HomeLogin')}
       >
-        <Text className="text-gray-500 text-sm underline">Log Out</Text>
+        <Text className="text-gray-600 text-sm underline" style={{ fontFamily: 'Klados-Bold' }}>Log Out</Text>
       </TouchableOpacity>
     </View>
   );
