@@ -10,13 +10,15 @@ import FormScreen from './screens/FormScreen';
 import IdeasScreen from './screens/IdeasScreen';
 import ProjectDashboard from './screens/ProjectDashboard';
 import SignUpScreen from './screens/SignUpScreen';
-import ChatScreen from './screens/ChatScreen'; 
+import ChatScreen from './screens/ChatScreen';
+import CongratsScreen from './screens/CongratsScreen';
 
 export type ParsedIdea = {
   name: string;
   overview: string;
   difficulty: string;
   timeline: string;
+  skills?: string;
 };
 
 export type FormDataType = {
@@ -34,11 +36,15 @@ export type RootStackParamList = {
   SignUp: undefined;
   Dashboard: undefined;
   Form: undefined;
-  Ideas: { formData: FormDataType; retainedIdeas?: ParsedIdea[] };
+  Ideas: { formData: FormDataType; retainedIdeas?: ParsedIdea[]; fromChat?: boolean; uploadedDocument?: { name: string; content: string } | null };
   Chat: {
     previousMessages: { role: string; content: string }[];
     preferences: string[];
+    formData?: FormDataType;
+    retainedIdeas?: ParsedIdea[];
+    uploadedDocument?: { name: string; content: string } | null;
   };
+  Congrats: { selectedIdea: ParsedIdea };
 };
 
 export default function App() {
@@ -63,11 +69,14 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="HomeLogin">
+      <Stack.Navigator initialRouteName="HomeLogin" screenOptions={{ animation: 'slide_from_right' }}>
         <Stack.Screen
           name="HomeLogin"
           component={HomeLogin}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+            animation: 'slide_from_left',      // 👈 only this screen slides L→R
+          }}
         />
         <Stack.Screen
           name="SignUp"
@@ -88,8 +97,7 @@ export default function App() {
           name="Ideas"
           component={IdeasScreen}
           options={{
-            headerShown: false,
-            animation: 'slide_from_left'
+            headerShown: false
           }}
         />
         <Stack.Screen
@@ -98,6 +106,11 @@ export default function App() {
           options={{
             headerShown: false,
           }}
+        />
+        <Stack.Screen
+          name="Congrats"
+          component={CongratsScreen}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>      
     </NavigationContainer>

@@ -6,7 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  SafeAreaView,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
@@ -33,20 +34,22 @@ const renderRichText = (content: string) => {
   });
 };
 
-export default function ChatScreen({ route }: Props) {
-  const { previousMessages, preferences = [] } = route.params ?? {};
+export default function ChatScreen({ route, navigation }: Props) {
+  const { previousMessages, preferences = [], formData, retainedIdeas, uploadedDocument } = route.params ?? {};
   const [messages, setMessages]   = useState(previousMessages ?? []);
   const [input, setInput]         = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [finalIdea, setFinalIdea] = useState<string | null>(null);
   const [threadId, setThreadId]   = useState<string | null>(null);
+  const [isChecked, setIsChecked] = useState(false);
+  const [isFinal, setIsFinal] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   /* greet on first load */
   useEffect(() => {
     if ((!previousMessages || previousMessages.length === 0) && messages.length === 0) {
       setMessages([
-        { role: 'assistant', content: 'Hello! Let’s find a great project idea together.' }
+        { role: 'assistant', content: 'Hello! Lets find a great project idea together.' }
       ]);
     }
   }, []);
@@ -60,14 +63,20 @@ export default function ChatScreen({ route }: Props) {
     setIsLoading(true);
 
     try {
+      const requestData = {
+        thread_id: threadId,
+        messages: updated.slice(-8),
+        preferences,
+        uploaded_document: uploadedDocument ? {
+          name: uploadedDocument.name,
+          content: uploadedDocument.content
+        } : null
+      };
+
       const res = await fetch(BACKEND_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          thread_id      : threadId,
-          messages       : updated.slice(-8),
-          preferences
-        })
+        body: JSON.stringify(requestData),
       });
       const data = await res.json();
       if (!threadId && data.thread_id) setThreadId(data.thread_id);
@@ -79,6 +88,7 @@ export default function ChatScreen({ route }: Props) {
         ]);
       }
       if (data.final_idea) setFinalIdea(data.final_idea);
+      setIsFinal(!!data.is_final);
     } catch (err) {
       console.error('❌ Chat error:', err);
     } finally {
@@ -90,9 +100,36 @@ export default function ChatScreen({ route }: Props) {
   return (
     <KeyboardAvoidingView className="flex-1 bg-white"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View className="mt-6">
-        <CustomHeader title="Project Chat" />
-      </View>
+      <SafeAreaView>
+        <View style={{ flexDirection: 'row', alignItems: 'center', height: 44 }}>
+          {/* Left: Ideas */}
+          <View style={{ minWidth: 80, alignItems: 'flex-start', paddingLeft: 16 }}>
+            <TouchableOpacity
+              onPress={() => {
+                if (formData && retainedIdeas) {
+                  navigation.navigate('Ideas', { formData, retainedIdeas });
+                }
+              }}
+            >
+              <Text className="text-gray-600 text-base underline font-bold" style={{ fontFamily: 'Klados-Bold' }}>Ideas</Text>
+            </TouchableOpacity>
+          </View>
+          {/* Center: Project Chat */}
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text className="text-black text-xl font-bold" style={{ fontFamily: 'Klados-Bold' }}>Project Chat</Text>
+          </View>
+          {/* Right: Log Out */}
+          <View style={{ minWidth: 80, alignItems: 'flex-end', paddingRight: 16 }}>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.replace('HomeLogin');
+              }}
+            >
+              <Text className="text-gray-600 text-base underline font-bold" style={{ fontFamily: 'Klados-Bold' }}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
 
       <ScrollView ref={scrollRef} className="flex-1 p-4"
         contentContainerStyle={{ paddingBottom: 160, paddingTop: 24 }}
@@ -112,11 +149,37 @@ export default function ChatScreen({ route }: Props) {
           </View>
         ))}
 
-        {finalIdea && (
-          <View className="p-4 bg-green-100 mt-4 rounded-xl">
-            <Text className="text-lg font-bold mb-1">🎉 Final Project Idea</Text>
-            <Text>{renderRichText(finalIdea)}</Text>
-          </View>
+        {finalIdea && isFinal && (
+          <>
+            <View className="p-4 bg-green-100 mt-4 rounded-xl">
+              <Text className="text-lg font-bold mb-1">🎉 Final Project Idea</Text>
+              <Text>{renderRichText(finalIdea)}</Text>
+            </View>
+            {/* Custom Checkbox and Submit button */}
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}
+              onPress={() => setIsChecked(!isChecked)}
+              activeOpacity={0.7}
+            >
+              <View style={{
+                width: 24, height: 24, borderWidth: 2, borderColor: '#333', borderRadius: 6,
+                backgroundColor: isChecked ? '#333' : 'transparent', alignItems: 'center', justifyContent: 'center'
+              }}>
+                {isChecked && <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>✓</Text>}
+              </View>
+              <Text style={{ marginLeft: 8, fontFamily: 'Klados-Bold', fontSize: 16 }}>I want to pick this idea.</Text>
+            </TouchableOpacity>
+            {isChecked && (
+              <TouchableOpacity
+                style={{ marginTop: 16, backgroundColor: 'black', paddingVertical: 12, borderRadius: 8, alignItems: 'center' }}
+                onPress={() => {
+                  navigation.navigate('Congrats', { selectedIdea: finalIdea });
+                }}
+              >
+                <Text style={{ color: 'white', fontFamily: 'Klados-Bold', fontSize: 16 }}>Submit</Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </ScrollView>
 

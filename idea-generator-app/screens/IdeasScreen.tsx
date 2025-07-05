@@ -6,6 +6,8 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  SafeAreaView,
+  Platform
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, ParsedIdea } from '../App';
@@ -36,6 +38,8 @@ function parseIdeaBlocks(lines: string[]): ParsedIdea[] {
       current.difficulty = line.replace('Project Difficulty:', '').trim();
     } else if (line.startsWith('Project Timeline:')) {
       current.timeline = line.replace('Project Timeline:', '').trim();
+    } else if (line.startsWith('Skills:') || line.startsWith('Project Skills:')) {
+      current.skills = line.replace('Skills:', '').replace('Project Skills:', '').trim();
     } else if (line !== '') {
       // Append to the last non-empty field for multiline support
       if (current.timeline) {
@@ -56,11 +60,15 @@ function parseIdeaBlocks(lines: string[]): ParsedIdea[] {
 
 
 export default function IdeasScreen({ route, navigation }: Props) {
-  const { formData, retainedIdeas } = route.params;
+  const { formData, retainedIdeas, uploadedDocument } = route.params;
   const [ideas, setIdeas] = useState<ParsedIdea[] | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
+    console.log('IdeasScreen received formData:', formData);
+    console.log('IdeasScreen received retainedIdeas:', retainedIdeas);
+    console.log('IdeasScreen received uploadedDocument:', uploadedDocument);
+    
     if (retainedIdeas) {
       setIdeas(retainedIdeas);
       return; // Stop here if ideas are retained
@@ -68,13 +76,24 @@ export default function IdeasScreen({ route, navigation }: Props) {
 
     async function fetchIdeas() {
       try {
-        const response = await fetch('http://127.0.0.1:8000/generate', {
+        // Prepare request data including uploaded document
+        const requestData = {
+          ...formData,
+          uploaded_document: uploadedDocument ? {
+            name: uploadedDocument.name,
+            content: uploadedDocument.content
+          } : null
+        };
+        
+        console.log('Sending request to backend with data:', requestData);
+        const response = await fetch('http://10.0.0.76:8000/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(requestData),
         });
 
         const data = await response.json();
+        console.log('Backend response:', data);
         const rawIdeas = Array.isArray(data.ideas) ? data.ideas : Object.values(data)[0];
         const parsed = parseIdeaBlocks(
           rawIdeas.flatMap((idea: string) => idea.split('\n'))
@@ -85,7 +104,11 @@ export default function IdeasScreen({ route, navigation }: Props) {
       }
     }
 
-    fetchIdeas();
+    if (formData) {
+      fetchIdeas();
+    } else {
+      console.error('No formData received in IdeasScreen');
+    }
   }, []);
 
   if (!ideas) {
@@ -102,87 +125,108 @@ export default function IdeasScreen({ route, navigation }: Props) {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ paddingBottom: 100 }} className="bg-white px-5">
-      <View className="mt-6">
-        <CustomHeader title="Your Project Ideas" showBack />
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      {/* Static Header */}
+      <View style={{ paddingHorizontal: 20, backgroundColor: 'white', zIndex: 10 }}>
+        <View style={{ marginTop: -40 }}>
+          <CustomHeader title="Your Project Ideas" showBack />
+        </View>
       </View>
 
-      {ideas.map((idea, index) => (
-        <TouchableOpacity
-          key={index}
-          onPress={() => handleSelectIdea(index)}
-          style={{
-            marginTop: 16,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: selectedIndex === index ? '#000' : '#e5e7eb',
-            backgroundColor: '#fff',
-            padding: 16,
-            marginBottom: 16,
-            shadowColor: '#000',
-            shadowOpacity: 0.04,
-            shadowRadius: 4,
-            shadowOffset: { width: 0, height: 2 },
-          }}
-        >
-          <Text style={{ fontWeight: 'bold', fontSize: 18, color: '#111' }}>{idea.name}</Text>
+      {/* Scrollable Ideas List */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 16, paddingTop: 8 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {ideas.map((idea, index) => (
+          <TouchableOpacity
+            key={index}
+            onPress={() => handleSelectIdea(index)}
+            style={{
+              marginTop: 16,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: selectedIndex === index ? '#000' : '#e5e7eb',
+              backgroundColor: '#fff',
+              padding: 16,
+              marginBottom: 16,
+              shadowColor: '#000',
+              shadowOpacity: 0.04,
+              shadowRadius: 4,
+              shadowOffset: { width: 0, height: 2 },
+            }}
+          >
+            <Text style={{ fontWeight: 'bold', fontSize: 18, color: '#111' }}>{idea.name}</Text>
 
-          <Text style={{ fontFamily: 'Klados-Bold', color: '#6b7280', fontSize: 13, marginTop: 10 }}>Overview:</Text>
-          <Text style={{ fontFamily: 'Klados-Bold', color: '#111', fontSize: 15, marginTop: 2 }}>{idea.overview}</Text>
+            {idea.skills && (
+              <>
+                <Text style={{ fontFamily: 'Klados-Bold', color: '#6b7280', fontSize: 13, marginTop: 10 }}>Project Skills:</Text>
+                <Text style={{ fontFamily: 'Klados-Bold', color: '#111', fontSize: 15, marginTop: 2 }}>{idea.skills.replace(/^Project\s+/i, '')}</Text>
+              </>
+            )}
 
-          <Text style={{ color: '#6b7280', fontSize: 13, marginTop: 10 }}>Difficulty:</Text>
-          <Text style={{ fontFamily: 'Klados-Bold', color: '#111', fontSize: 15, marginTop: 2 }}>{idea.difficulty}</Text>
+            <Text style={{ fontFamily: 'Klados-Bold', color: '#6b7280', fontSize: 13, marginTop: 10 }}>Overview:</Text>
+            <Text style={{ fontFamily: 'Klados-Bold', color: '#111', fontSize: 15, marginTop: 2 }}>{idea.overview}</Text>
 
-          <Text style={{ fontFamily: 'Klados-Bold', color: '#6b7280', fontSize: 13, marginTop: 10 }}>Timeline:</Text>
-          <Text style={{ fontFamily: 'Klados-Bold', color: '#111', fontSize: 15, marginTop: 2 }}>{idea.timeline}</Text>
-        </TouchableOpacity>
-      ))}
+            <Text style={{ fontFamily: 'Klados-Bold', color: '#6b7280', fontSize: 13, marginTop: 10 }}>Difficulty:</Text>
+            <Text style={{ fontFamily: 'Klados-Bold', color: '#111', fontSize: 15, marginTop: 2 }}>{idea.difficulty}</Text>
 
-      <View className="mt-6 space-y-3">
-        <TouchableOpacity
-          disabled={selectedIndex === null}
-          className={`py-4 rounded-xl items-center ${
-            selectedIndex === null ? 'bg-gray-400' : 'bg-black'
-          }`}
-          onPress={() => {
-            if (selectedIndex !== null) {
-              const selected = ideas[selectedIndex];
-              console.log('Liked idea:', selected.name);
-              // Add future navigation here
-            }
-          }}
-        >
-          <Text className="text-white text-base font-bold" style={{ fontFamily: 'Klados-Bold'}}>I like this idea</Text>
-        </TouchableOpacity>
+            <Text style={{ fontFamily: 'Klados-Bold', color: '#6b7280', fontSize: 13, marginTop: 10 }}>Timeline:</Text>
+            <Text style={{ fontFamily: 'Klados-Bold', color: '#111', fontSize: 15, marginTop: 2 }}>{idea.timeline}</Text>
+          </TouchableOpacity>
+        ))}
 
-        <TouchableOpacity
-          className="py-4 rounded-xl items-center border border-black"  
-          onPress={() => {
-            navigation.navigate('Chat', {
-              previousMessages: [],                 
-              preferences: [
-                formData.project_type,
-                formData.project_interest,
-                formData.project_technical,
-                formData.project_potential,
-                formData.project_additional
-              ].filter(Boolean)                
-            });
-          }}
-        >
-          <Text className="text-black text-base font-bold" style={{ fontFamily: 'Klados-Bold'}}>
-            Chat with an agent to find an idea for you!
-          </Text>
-        </TouchableOpacity>
+        <View className="mt-6 space-y-3">
+          <TouchableOpacity
+            disabled={selectedIndex === null}
+            className={`py-4 rounded-xl items-center ${
+              selectedIndex === null ? 'bg-gray-400' : 'bg-black'
+            }`}
+            onPress={() => {
+              if (selectedIndex !== null) {
+                const selected = ideas[selectedIndex];
+                navigation.navigate('Congrats', { selectedIdea: selected });
+              }
+            }}
+          >
+            <Text className="text-white text-base font-bold" style={{ fontFamily: 'Klados-Bold'}}>I like this idea</Text>
+          </TouchableOpacity>
 
+          <TouchableOpacity
+            className="py-4 rounded-xl items-center border border-black"  
+            onPress={() => {
+              navigation.navigate('Chat', {
+                previousMessages: [],                 
+                preferences: [
+                  formData.project_type,
+                  formData.project_interest,
+                  formData.project_technical,
+                  formData.project_potential,
+                  formData.project_additional
+                ].filter(Boolean),
+                formData,
+                retainedIdeas: ideas,
+                uploadedDocument: uploadedDocument
+              });
+            }}
+          >
+            <Text className="text-black text-base font-bold" style={{ fontFamily: 'Klados-Bold'}}>
+              Chat with an agent to find an idea for you!
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          className="mt-4 py-3 rounded-xl items-center bg-gray-100 border border-gray-400"
-          onPress={() => navigation.navigate('Form')}
-        >
-          <Text className="text-gray-700 text-base">← Back to Form</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <TouchableOpacity
+            className="mt-4 py-3 rounded-xl items-center bg-gray-100 border border-gray-400"
+            onPress={() => {
+              // Go back to previous screen (Form) which should slide left-to-right
+              navigation.goBack();
+            }}
+          >
+            <Text className="text-gray-700 text-base">← Back to Form</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }

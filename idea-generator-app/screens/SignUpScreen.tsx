@@ -31,7 +31,7 @@ export default function SignUpScreen() {
 
   return (
     <View className="flex-1 bg-white justify-center px-6">
-      <Text className="text-2xl font-extrabold text-black text-center mb-8">
+      <Text className="text-2xl font-extrabold  text-center mb-8" style={{ fontFamily: 'Klados-Bold' }}>
         Sign Up With Klados
       </Text>
 
@@ -89,11 +89,11 @@ export default function SignUpScreen() {
         )}
 
       <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} className={`py-4 rounded-xl items-center mb-4 ${isFormValid ? 'bg-black' : 'bg-gray-400'}`} disabled={!isFormValid}>
-         <Text className="text-white text-lg font-semibold">Create Account</Text>
+         <Text className="text-white text-lg" style={{ fontFamily: 'Klados-Bold' }}>Create Account</Text>
         </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('HomeLogin')}>
-        <Text className="text-center text-gray-500 underline mt-3">
+        <Text className="text-center text-gray-500 underline mt-3" style={{ fontFamily: 'Klados-Bold' }}>
           Back to Home
         </Text>
       </TouchableOpacity>

@@ -31,9 +31,21 @@ class InputData(BaseModel):
     project_technical: str
     project_potential: str
     project_additional: str
+    uploaded_document: Optional[dict] = None
 
 @app.post("/generate")
 def generate_ideas(data: InputData):
+    # Build the prompt with document content if available
+    document_context = ""
+    if data.uploaded_document and data.uploaded_document.get('content'):
+        document_context = f"""
+        
+Additional Guidelines/Instructions from uploaded document:
+{data.uploaded_document['content']}
+
+Please consider these guidelines when generating project ideas.
+"""
+    
     prompt = f"""
     You are an extremely skilled idea generator, that can come up with extremely creative and applicable ideas for 
     projects for students/users that want to create projects either by themselves or in a group. These ideas may be fully thought out or 
@@ -45,12 +57,13 @@ def generate_ideas(data: InputData):
     - Interest Domain: {data.project_interest}
     - Technical Skills: {data.project_technical}
     - Ideation Status: {data.project_potential}
-    - Additional Notes: {data.project_additional}
+    - Additional Notes: {data.project_additional}{document_context}
 
     Please provide 5-10 project ideas. For each idea, use this exact format:
 
     Project Name: [Name of the project]
     Project Overview: [Brief description of what the project does]
+    Project Skills: [What skills are required to complete the project(technical skills, no-code, etc.)]
     Project Difficulty: [novice/intermediate/advanced]
     Project Timeline: [hours per week and total weeks]
 
@@ -87,6 +100,7 @@ Use this exact format:
 
 Project Name: [Name of the project]  
 Project Overview: [Brief description of what the project does]  
+Project Skills: [What skills are required to complete the project(technical skills, no-code, etc.)]
 Project Difficulty: [novice/intermediate/advanced]  
 Project Timeline: [hours per week and total weeks the project will take]  
 """
@@ -117,11 +131,13 @@ from chatbot_backend import graph   # <-- make sure this file exports `graph`
 class LGRequest(BaseModel):
     thread_id: Optional[str] = None
     messages: List[Dict[str, str]]
+    preferences: List[str] = []
 
 class LGResponse(BaseModel):
     assistant_message: str
     final_idea: Optional[str]
     thread_id: str
+    is_final: bool
 
 @app.post("/lg-chat", response_model=LGResponse)
 def lg_chat(data: LGRequest = Body(...)):
@@ -131,7 +147,7 @@ def lg_chat(data: LGRequest = Body(...)):
     init_state = {
         "messages":       [last_user],
         "rejected_ideas": [],
-        "preferences":    [],
+        "preferences":    data.preferences or [],
     }
     cfg = {"configurable": {"thread_id": thread_id}}
 
@@ -144,4 +160,5 @@ def lg_chat(data: LGRequest = Body(...)):
         assistant_message = final_state["messages"][-1].content,
         final_idea        = final_state.get("accepted_idea"),
         thread_id         = thread_id,
+        is_final          = final_state.get("accepted_idea") is not None,
     )

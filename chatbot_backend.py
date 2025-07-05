@@ -1,5 +1,5 @@
 """
-backend.py  ―  FastAPI + LangGraph server for “Project-Idea” chatbot
+backend.py  ―  FastAPI + LangGraph server for "Project-Idea" chatbot
 
 Run locally:
     $ pip install fastapi uvicorn python-dotenv langchain langgraph langchain-tavily
@@ -11,7 +11,7 @@ Request : {
     "messages" : [ { "role": "...", "content": "..." }, ... ]   # history slice (user+assistant)
 }
 Response: {
-    "assistant_message": string,  # bot’s reply for this turn
+    "assistant_message": string,  # bot's reply for this turn
     "final_idea"      : string | null,   # filled once router → finalize
     "thread_id"       : string          # echo so FE can persist
 }
@@ -26,7 +26,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from langchain_tavily import TavilySearch     # ← keep if you add tools later
+#from langchain_tavily import TavilySearch     # ← keep if you add tools later
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, AIMessage
 from langgraph.graph import StateGraph, START, END
@@ -47,13 +47,16 @@ class State(TypedDict):
     rejected_ideas:  Annotated[List[str], add_lists]
     preferences:     Annotated[List[str], add_lists]
     accepted_idea:   str | None
+    document_context: str | None
 
 # ────────────────────────── 4.  Node definitions ─────────────────────
 def chatbot(state: State):
+    document_context = state.get('document_context', '')
     system = (
         "You are an idea-generation bot.\n"
         f"Previously rejected ideas: {state['rejected_ideas'][-5:]}\n"
         f"User preferences: {state['preferences'][-5:]}\n"
+        f"{document_context}\n"
         "Return ONE new project idea (or ask up to 2 clarifying questions)."
     )
     prompt = [{"role": "system", "content": system}] + state["messages"]
@@ -139,12 +142,16 @@ class ChatRequest(BaseModel):
     thread_id: str | None = None
     messages:  list
     rejected_ideas: List[str] | None = None
+    preferences: List[str] | None = None
+    uploaded_document: dict | None = None
 
 class ChatResponse(BaseModel):
     assistant_message: str
     final_idea: str | None
     thread_id: str
     rejected_ideas: List[str]
+    preferences: List[str]
+    is_final: bool
 
 @app.post("/simple-chat", response_model=ChatResponse)
 def simple_chat(req: ChatRequest):
@@ -154,10 +161,22 @@ def simple_chat(req: ChatRequest):
     # last user message = newest with role 'user'
     last_user = next(m for m in reversed(req.messages) if m["role"] == "user")
 
+    # Build document context if available
+    document_context = ""
+    if req.uploaded_document and req.uploaded_document.get('content'):
+        document_context = f"""
+        
+Additional Guidelines/Instructions from uploaded document:
+{req.uploaded_document['content']}
+
+Please consider these guidelines when generating project ideas and responding to the user.
+"""
+
     init_state = {
         "messages":       [last_user],
         "rejected_ideas": [],
-        "preferences":    req.preferences    or [],
+        "preferences":    req.preferences or [],
+        "document_context": document_context,
     }
     cfg = {"configurable": {"thread_id": thread_id}}
 
@@ -169,7 +188,9 @@ def simple_chat(req: ChatRequest):
         assistant_message = final_state["messages"][-1].content,
         final_idea        = final_state.get("accepted_idea"),
         thread_id         = thread_id,
+        rejected_ideas    = final_state["rejected_ideas"],
         preferences       = final_state["preferences"],
+        is_final          = final_state.get("accepted_idea") is not None,
     )
 
 # ────────────────────────── 7.  Dev server entrypoint ───────────────
