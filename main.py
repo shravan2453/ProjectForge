@@ -1,101 +1,164 @@
-from fastapi import FastAPI
+# main.py  ---------------------------------------------------------------
+from fastapi import FastAPI, Request, Body
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from typing import List, Dict, Optional
+import os, uuid
 import google.generativeai as genai
-import os
 from dotenv import load_dotenv
 
+# ───── Env & Gemini model ───────────────────────────────────────────────
 load_dotenv()
-# Configure Gemini API key
-gemini_key = os.getenv("gemini_api_key") 
-genai.configure(api_key=gemini_key)  # Replace with your key
+genai.configure(api_key=os.getenv("gemini_api_key"))
+gemini_model = genai.GenerativeModel("gemini-2.0-flash")
 
-# Define app
+# ───── FastAPI instance & CORS ──────────────────────────────────────────
 app = FastAPI()
-
-# Allow frontend to call this backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # You can restrict this later
+    allow_origins=["*"],          # <- loosen later for prod
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Define input structure
+# ════════════════════════════════════════════════════════════════════════
+# 1)  GENERATE IDEAS (Gemini, no chat / memory)
+# ════════════════════════════════════════════════════════════════════════
 class InputData(BaseModel):
     project_type: str
     project_interest: str
     project_technical: str
     project_potential: str
     project_additional: str
+    uploaded_document: Optional[dict] = None
 
 @app.post("/generate")
 def generate_ideas(data: InputData):
-    # Construct prompt using form data
-    prompt = f"""You are an extremely skilled idea generator, that can come up with extremely creative and applicable ideas for 
+    # Build the prompt with document content if available
+    document_context = ""
+    if data.uploaded_document and data.uploaded_document.get('content'):
+        document_context = f"""
+        
+Additional Guidelines/Instructions from uploaded document:
+{data.uploaded_document['content']}
+
+Please consider these guidelines when generating project ideas.
+"""
+    
+    prompt = f"""
+    You are an extremely skilled idea generator, that can come up with extremely creative and applicable ideas for 
     projects for students/users that want to create projects either by themselves or in a group. These ideas may be fully thought out or 
     not thought out at all. Your job is to help them develop the idea into something concrete and adheres to their wishes, no matter 
     how crazy the idea sounds. Specifically, you will take five inputs, and use the responses of the inputs to give the user a set of 5-10 concrete, creative, and applicable project ideas.
-        
-        The first input that you will be provided with is information of what the project is for. The purpose oof this input is to give
-        a sense of the context of the project. For example, the project could be for a potential startup, it could be for a
-        hackathon, or it could be something like a personal website. Use this input to understand exactly what kind of projects you
-        can give to the user. 
-        This is the first input that you will use: {data.project_type}
-        
-        The second input that you will be provided with is the sort of topic that the project will be encompassing. This i Some examples 
-        the user can narrow down the specifics of what problem they are trying to tackle. Soof topics could be Sports, Law, Education, etc. 
-        The second input that you will be provided with is the sort of topic or domain the project will be encompassing. This helps narrow down the problem space the user is interested in exploring. 
-        Examples of topics include Sports, Law, Education, Healthcare, Environment, Finance, or Arts.
-        Use this topic to guide the idea generation process by focusing on relevant challenges, needs, or innovations within that field. 
-        The goal is to create a project idea that feels grounded in the chosen domain, while still being creative and feasible for a student to pursue independently or with a team. 
-        If the topic is too broad or unclear, ask a clarifying question to help refine the scope before proposing a solution.
-        This is the second input that you will use: {data.project_interest}
-        
-        The third input that you will be provided with is the types of technical skills the user wants to work with. For example, 
-        the user could want to do a projject tthat prioritizes machine learning, or a project that prioritizes full stack development,
-        or even a project that prioritizes data visualizations with jupyter noteboook. Take these technical requirements into
-        consideration when giving a set of projects for the user, making sure that the outputted projects priortize the technical skills
-        that the user wants. Also keep in mind, extremely importantly, that if this input indicates that the user does not want to use
-        any technical skills, give the user a set of NON-TECHNICAL projects, that don't invovle coding or technical skills. An example
-        of this might be a product startup that doesn't have a technical background. Be clear in understanding the type of technical, or
-        non-technical skills that the user might want in the potential project that they are looking for.
-        This is the third input that you will use: {data.project_technical}
-
-        The fourth input you will receive reflects the user's current stage of ideation. They may already have a fleshed out idea in mind, a rough idea, or nothing at all:
-        If they do have an idea, your job is to refine, validate, or expand on it with clear direction and next steps. 
-        If they don’t have any idea, begin by proposing 5-10 creative project ideas based on their inputs to the previous questions.
-        In both cases, be proactive in asking clarifying questions if needed, and guide them toward a well-scoped and actionable and practical project.
-        The fourth input you will use is: {data.project_potential}
-        
-        The fifth input that you will be provided with is any additional information that the user sees as important in 
-        understanding what project ideas to output. Make sure to take any information given here into consideration when 
-        providing the user with project ideas.
-        This is the fifth input that you will use: {data.project_additional}
-
-        Remember that you are using these five inputs to give the user 5-10 strong, applicable, creative, and 
-        attainable projects for them. Try to provide projects with a variety of difficulty levels, so provide some 
-        simple projects and some difficult projects as well. If there isn’t a lot of information in the inputs or 
-        information given, then be creative and give a variety of projects that are creative and attainable for the student.
-
-        The output of these ideas should be formatted as a bullet point list with each bullet point being a project idea.
-        For each project idea I want The Name of the project idea, labeled 'Project Name:', the concept or the overview of the idea itself,
-        labeled 'Project Overview:', the difficulty of the project itself, rating the difficulty as either novice, intermediate, advanced, 
-        or somewhere in between, labeling this as 'Project Difficulty:', and lastly how many hours the project should take approximately AND MORE IMPORTANTLY how
-        many weeks the project should take approximately, giving a general time range into hours per week and also providing the 
-        approximate total number of weeks the project will take. This should be labeled as 'Project Timeline:'.
-
-        One final output request: DO NOT PRINT ANYTHING BEFORE THE IDEAS. For example, I mean don't output or say that you are thinking of ideas, Just
-        print the ideas in the format I've asked above. 
-        """
     
+    Here are the inputs:
+    - Project Type: {data.project_type}
+    - Interest Domain: {data.project_interest}
+    - Technical Skills: {data.project_technical}
+    - Ideation Status: {data.project_potential}
+    - Additional Notes: {data.project_additional}{document_context}
 
-    # Call Gemini
-    model = genai.GenerativeModel("gemini-2.0-flash")
-    response = model.generate_content(prompt)
+    Please provide 5-10 project ideas. For each idea, use this exact format:
 
-    # Clean up Gemini response into a list
-    raw_output = response.text.strip()
-    ideas = [line.strip("-• ") for line in raw_output.split("\n") if line.strip()]
+    Project Name: [Name of the project]
+    Project Overview: [Brief description of what the project does]
+    Project Skills: [What skills are required to complete the project(technical skills, no-code, etc.)]
+    Project Difficulty: [novice/intermediate/advanced]
+    Project Timeline: [hours per week and total weeks]
 
+    Make sure each idea is separated by a blank line and follows this exact format.
+    """
+    raw = gemini_model.generate_content(prompt).text.strip()
+
+    # Split into individual ideas (same logic as before)
+    ideas, current = [], []
+    for line in raw.splitlines():
+        if line.strip():
+            current.append(line.strip())
+        elif current:
+            ideas.append("\n".join(current)); current = []
+    if current:
+        ideas.append("\n".join(current))
     return {"ideas": ideas}
+
+# ════════════════════════════════════════════════════════════════════════
+# 2)  SIMPLE GEMINI CHAT  (unchanged)
+# ════════════════════════════════════════════════════════════════════════
+prompt_intro = """
+You are an extremely skilled idea generator, that can come up with extremely creative and applicable ideas for 
+projects for students/users that want to create projects either by themselves or in a group. These ideas may be fully thought out or 
+not thought out at all. Your job is to help them develop the idea into something concrete and adheres to their wishes, no matter 
+how crazy the idea sounds. You need to work with the user until they agree with your ideas and what you want to provide them with.
+Most importantly, keep asking clarifying questions until you feel very confident in giving 1-2 good ideas to the user that reflect
+their preferences. I would say aim for asking 5-6 clarifying questions TOTAL to the user related to their poject
+prior to giving them a final project idea in the output formatted below. Ask the clarifying questions
+ONE AT A TIME, rather than just prompting the user with many questions at once. This is VERY important! 
+Once they say they are good with the idea, saying something similar to "yes" or "i like this idea" or "ok" or "sure", end with providing them a concrete output that is formatted as such:
+
+Use this exact format:
+
+Project Name: [Name of the project]  
+Project Overview: [Brief description of what the project does]  
+Project Skills: [What skills are required to complete the project(technical skills, no-code, etc.)]
+Project Difficulty: [novice/intermediate/advanced]  
+Project Timeline: [hours per week and total weeks the project will take]  
+"""
+
+@app.post("/simple-chat")
+async def simple_chat(request: Request):
+    try:
+        body     = await request.json()
+        messages = body.get("messages", [])
+
+        chat_history = [{"role": m["role"], "parts": [m["content"]]} for m in messages]
+        convo  = gemini_model.start_chat(history=chat_history)
+        reply  = convo.send_message(prompt_intro).text.strip()
+
+        return JSONResponse(content={
+            "assistant_message": reply,
+            "final_idea": reply if reply.startswith("Project Name:") else None
+        })
+    except Exception as e:
+        print("🔥 simple-chat error:", e)
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+# ════════════════════════════════════════════════════════════════════════
+# 3)  LANGGRAPH CHAT  (/lg-chat)
+# ════════════════════════════════════════════════════════════════════════
+from chatbot_backend import graph   # <-- make sure this file exports `graph`
+
+class LGRequest(BaseModel):
+    thread_id: Optional[str] = None
+    messages: List[Dict[str, str]]
+    preferences: List[str] = []
+
+class LGResponse(BaseModel):
+    assistant_message: str
+    final_idea: Optional[str]
+    thread_id: str
+    is_final: bool
+
+@app.post("/lg-chat", response_model=LGResponse)
+def lg_chat(data: LGRequest = Body(...)):
+    thread_id = data.thread_id or uuid.uuid4().hex
+    last_user = next(m for m in reversed(data.messages) if m["role"] == "user")
+
+    init_state = {
+        "messages":       [last_user],
+        "rejected_ideas": [],
+        "preferences":    data.preferences or [],
+    }
+    cfg = {"configurable": {"thread_id": thread_id}}
+
+    # run exactly one LangGraph pass
+    final_state = None
+    for final_state in graph.stream(init_state, cfg, stream_mode="values"):
+        pass
+
+    return LGResponse(
+        assistant_message = final_state["messages"][-1].content,
+        final_idea        = final_state.get("accepted_idea"),
+        thread_id         = thread_id,
+        is_final          = final_state.get("accepted_idea") is not None,
+    )
