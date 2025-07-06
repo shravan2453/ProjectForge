@@ -58,6 +58,7 @@ function parseIdeaBlocks(lines: string[]): ParsedIdea[] {
   return structured;
 }
 
+export { parseIdeaBlocks };
 
 export default function IdeasScreen({ route, navigation }: Props) {
   const { formData, retainedIdeas, uploadedDocument } = route.params;
@@ -65,9 +66,6 @@ export default function IdeasScreen({ route, navigation }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    console.log('IdeasScreen received formData:', formData);
-    console.log('IdeasScreen received retainedIdeas:', retainedIdeas);
-    console.log('IdeasScreen received uploadedDocument:', uploadedDocument);
     
     if (retainedIdeas) {
       setIdeas(retainedIdeas);
@@ -93,7 +91,6 @@ export default function IdeasScreen({ route, navigation }: Props) {
         });
 
         const data = await response.json();
-        console.log('Backend response:', data);
         const rawIdeas = Array.isArray(data.ideas) ? data.ideas : Object.values(data)[0];
         const parsed = parseIdeaBlocks(
           rawIdeas.flatMap((idea: string) => idea.split('\n'))
@@ -219,8 +216,7 @@ export default function IdeasScreen({ route, navigation }: Props) {
           <TouchableOpacity
             className="mt-4 py-3 rounded-xl items-center bg-gray-100 border border-gray-400"
             onPress={() => {
-              // Go back to previous screen (Form) which should slide left-to-right
-              navigation.goBack();
+              navigation.navigate('Form');
             }}
           >
             <Text className="text-gray-700 text-base">← Back to Form</Text>

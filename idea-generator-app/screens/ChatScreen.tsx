@@ -8,22 +8,24 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
+  Keyboard,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import CustomHeader from '../screens/CustomHeader';
+import { parseIdeaBlocks } from './IdeasScreen';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
-const BACKEND_URL = 'http://127.0.0.1:8000/lg-chat';   // adjust for device / network
+const BACKEND_URL = 'http://10.0.0.76:8000/lg-chat';   // adjust for device / network
 
 /* ─── helper: render "**bold**" as actual bold text ─────────────────── */
 const renderRichText = (content: string) => {
-  // split on **…**
-  const parts = content.split(/(\*\*[^*]+\*\*)/g);
+  // Match **bold** or *bold* and render as bold
+  const parts = content.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
   return parts.map((part, idx) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      const txt = part.slice(2, -2);                // remove the asterisks
+    if ((part.startsWith('**') && part.endsWith('**')) || (part.startsWith('*') && part.endsWith('*'))) {
+      const txt = part.replace(/^\*+|\*+$/g, ''); // remove all leading/trailing asterisks
       return (
         <Text key={idx} style={{ fontWeight: 'bold' }}>
           {txt}
@@ -44,6 +46,7 @@ export default function ChatScreen({ route, navigation }: Props) {
   const [isChecked, setIsChecked] = useState(false);
   const [isFinal, setIsFinal] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  const [inputFocused, setInputFocused] = useState(false);
 
   /* greet on first load */
   useEffect(() => {
@@ -97,18 +100,28 @@ export default function ChatScreen({ route, navigation }: Props) {
   };
 
   /* ─── UI ──────────────────────────────────────────────────────────── */
+  // Input bar style changes based on focus
+  const inputBarPosition = inputFocused
+    ? { position: 'absolute' as const, top: 445, left: 0, right: 0, zIndex: 20, borderTopWidth: 1, borderTopColor: '#e5e7eb',backgroundColor: 'white', padding: 5 }
+    : { position: 'relative' as const, zIndex: 10, backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#e5e7eb', padding: 8 };
+  const inputBarInnerStyle = inputFocused
+    ? { minHeight: 48}
+    : { minHeight: 48 };
+
+  // Normal chat UI when keyboard is not visible
   return (
-    <KeyboardAvoidingView className="flex-1 bg-white"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <SafeAreaView>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: 'white' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    >
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', height: 44 }}>
           {/* Left: Ideas */}
           <View style={{ minWidth: 80, alignItems: 'flex-start', paddingLeft: 16 }}>
             <TouchableOpacity
               onPress={() => {
-                if (formData && retainedIdeas) {
-                  navigation.navigate('Ideas', { formData, retainedIdeas });
-                }
+                navigation.goBack();
               }}
             >
               <Text className="text-gray-600 text-base underline font-bold" style={{ fontFamily: 'Klados-Bold' }}>Ideas</Text>
@@ -129,84 +142,86 @@ export default function ChatScreen({ route, navigation }: Props) {
             </TouchableOpacity>
           </View>
         </View>
-      </SafeAreaView>
-
-      <ScrollView ref={scrollRef} className="flex-1 p-4"
-        contentContainerStyle={{ paddingBottom: 160, paddingTop: 24 }}
-        onContentSizeChange={() =>             
-          scrollRef.current?.scrollToEnd({ animated: true })
-        }>
-        {messages.map((msg, idx) => (
-          <View
-            key={idx}
-            className={`mb-4 p-3 rounded-xl ${
-              msg.role === 'user' ? 'bg-blue-100 self-end' : 'bg-gray-100 self-start'
-            }`}
-            style={{ maxWidth: '80%' }}
-          >
-            {/* replace plain text with rich renderer */}
-            <Text className="text-sm text-black">{renderRichText(msg.content)}</Text>
-          </View>
-        ))}
-
-        {finalIdea && isFinal && (
-          <>
-            <View className="p-4 bg-green-100 mt-4 rounded-xl">
-              <Text className="text-lg font-bold mb-1">🎉 Final Project Idea</Text>
-              <Text>{renderRichText(finalIdea)}</Text>
+        <ScrollView ref={scrollRef} className="flex-1 p-4"
+          contentContainerStyle={{ paddingBottom: 3, paddingTop: 6 }}
+          onContentSizeChange={() =>             
+            scrollRef.current?.scrollToEnd({ animated: true })
+          }>
+          {messages.map((msg, idx) => (
+            <View
+              key={idx}
+              className={`mb-4 p-3 rounded-xl ${
+                msg.role === 'user' ? 'bg-blue-100 self-end' : 'bg-gray-100 self-start'
+              }`}
+              style={{ maxWidth: '80%' }}
+            >
+              {/* replace plain text with rich renderer */}
+              <Text className="text-sm text-black">{renderRichText(msg.content)}</Text>
             </View>
-            {/* Custom Checkbox and Submit button */}
-            <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}
-              onPress={() => setIsChecked(!isChecked)}
-              activeOpacity={0.7}
-            >
-              <View style={{
-                width: 24, height: 24, borderWidth: 2, borderColor: '#333', borderRadius: 6,
-                backgroundColor: isChecked ? '#333' : 'transparent', alignItems: 'center', justifyContent: 'center'
-              }}>
-                {isChecked && <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>✓</Text>}
-              </View>
-              <Text style={{ marginLeft: 8, fontFamily: 'Klados-Bold', fontSize: 16 }}>I want to pick this idea.</Text>
-            </TouchableOpacity>
-            {isChecked && (
-              <TouchableOpacity
-                style={{ marginTop: 16, backgroundColor: 'black', paddingVertical: 12, borderRadius: 8, alignItems: 'center' }}
-                onPress={() => {
-                  navigation.navigate('Congrats', { selectedIdea: finalIdea });
-                }}
-              >
-                <Text style={{ color: 'white', fontFamily: 'Klados-Bold', fontSize: 16 }}>Submit</Text>
-              </TouchableOpacity>
-            )}
-          </>
-        )}
-      </ScrollView>
+          ))}
 
-      {!finalIdea && (
-        <View style={{
-          position: 'absolute', left: 0, right: 0, bottom: 5,
-          padding: 16, backgroundColor: 'white'
-        }}>
-          <View className="flex-row items-center border-t border-gray-200 bg-white"
-            style={{ minHeight: 64 }}>
-            <TextInput
-              value={input}
-              onChangeText={setInput}
-              placeholder="Type your message..."
-              className="flex-1 bg-gray-100 p-4 rounded-xl mr-2 text-base"
-              style={{ minHeight: 40, fontFamily: 'Klados-Bold' }}
-            />
-            <TouchableOpacity
-              className={`px-4 py-2 rounded-xl ${isLoading ? 'bg-gray-400' : 'bg-black'}`}
-              onPress={sendMessage}
-              disabled={isLoading}
-            >
-              <Text className="text-white font-bold" style={{ fontFamily: 'Klados-Bold'}}>Send</Text>
-            </TouchableOpacity>
+          {finalIdea && isFinal && (
+            <>
+              <View className="p-4 bg-green-100 mt-4 rounded-xl">
+                <Text className="text-lg font-bold mb-1">🎉 Final Project Idea</Text>
+                <Text>{renderRichText(finalIdea)}</Text>
+              </View>
+              {/* Custom Checkbox and Submit button */}
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}
+                onPress={() => setIsChecked(!isChecked)}
+                activeOpacity={0.7}
+              >
+                <View style={{
+                  width: 24, height: 24, borderWidth: 2, borderColor: '#333', borderRadius: 6,
+                  backgroundColor: isChecked ? '#333' : 'transparent', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  {isChecked && <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>✓</Text>}
+                </View>
+                <Text style={{ marginLeft: 8, fontFamily: 'Klados-Bold', fontSize: 16 }}>I want to pick this idea.</Text>
+              </TouchableOpacity>
+              {isChecked && (
+                <TouchableOpacity
+                  style={{ marginTop: 16, backgroundColor: 'black', paddingVertical: 12, borderRadius: 8, alignItems: 'center' }}
+                  onPress={() => {
+                    // Parse finalIdea string into an object
+                    const parsed = parseIdeaBlocks(finalIdea.split('\n'))[0];
+                    navigation.navigate('Congrats', { selectedIdea: parsed });
+                  }}
+                >
+                  <Text style={{ color: 'white', fontFamily: 'Klados-Bold', fontSize: 16 }}>Submit</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+        </ScrollView>
+        {/* Input bar, now always visible, position and size change on focus */}
+        {!finalIdea && (
+          <View style={inputBarPosition}>
+            <View className="flex-row items-center bg-white -mb-3" style={inputBarInnerStyle}>
+              <TextInput
+                value={input}
+                onChangeText={setInput}
+                placeholder="Type your message..."
+                className="flex-1 bg-gray-100 p-2 rounded-xl mr-2 text-base"
+                style={{ minHeight: 50, fontFamily: 'Klados-Bold' }}
+                blurOnSubmit={false}
+                onSubmitEditing={sendMessage}
+                returnKeyType="send"
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
+              />
+              <TouchableOpacity
+                className={`px-3.5 py-3.5 rounded-xl ${isLoading ? 'bg-gray-400' : 'bg-black'}`}
+                onPress={sendMessage}
+                disabled={isLoading}
+              >
+                <Text className="text-white font-bold" style={{ fontFamily: 'Klados-Bold'}}>Send</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      )}
+        )}
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }

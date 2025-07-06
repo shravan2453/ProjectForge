@@ -6,14 +6,16 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 
 const COLOR_PALETTE = [
-  '#FFD166', // yellow
-  '#06D6A0', // green
-  '#118AB2', // blue
-  '#EF476F', // pink
-  '#FFB703', // orange
-  '#073B4C', // dark blue
-  '#A259F7', // purple
-  '#FF6F61', // coral
+  '#FFE29A', // light yellow
+  '#B5F7D0', // light mint
+  '#AEEBFF', // light blue
+  '#FFD6E0', // light pink
+  '#FFF3B0', // pale gold
+  '#D1F2EB', // light teal
+  '#E0BBE4', // light lavender
+  '#FFECB3', // light cream
+  '#F8B195', // light coral
+  '#F6DFEB', // light blush
 ];
 
 const CARD_WIDTH = Math.min(Dimensions.get('window').width * 0.9, 400);
