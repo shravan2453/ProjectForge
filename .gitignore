@@ -7,3 +7,5 @@ __pycache__/
 .env
 *.pyc
 node_modules
+__pycache__/
+*.pyc
