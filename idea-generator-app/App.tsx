@@ -10,24 +10,9 @@ import FormScreen from './screens/FormScreen';
 import IdeasScreen from './screens/IdeasScreen';
 import ProjectDashboard from './screens/ProjectDashboard';
 import SignUpScreen from './screens/SignUpScreen';
-import ChatScreen from './screens/ChatScreen';
-import CongratsScreen from './screens/CongratsScreen';
 
-export type ParsedIdea = {
-  name: string;
-  overview: string;
-  difficulty: string;
-  timeline: string;
-  skills?: string;
-};
 
-export type FormDataType = {
-  project_type: string;
-  project_interest: string;
-  project_technical: string;
-  project_potential: string;
-  project_additional: string;
-};
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -36,15 +21,7 @@ export type RootStackParamList = {
   SignUp: undefined;
   Dashboard: undefined;
   Form: undefined;
-  Ideas: { formData: FormDataType; retainedIdeas?: ParsedIdea[]; fromChat?: boolean; uploadedDocument?: { name: string; content: string } | null };
-  Chat: {
-    previousMessages: { role: string; content: string }[];
-    preferences: string[];
-    formData?: FormDataType;
-    retainedIdeas?: ParsedIdea[];
-    uploadedDocument?: { name: string; content: string } | null;
-  };
-  Congrats: { selectedIdea: ParsedIdea };
+  Ideas: { formData: Record<string, string> };
 };
 
 export default function App() {
@@ -53,10 +30,6 @@ export default function App() {
     'Inter-Medium': require('./assets/fonts/Inter_18pt-Medium.ttf'),
     'Inter-SemiBold': require('./assets/fonts/Inter_18pt-SemiBold.ttf'),
     'Inter-Bold': require('./assets/fonts/Inter_18pt-Bold.ttf'),
-    'Klados-Main': require('./assets/fonts/Poppins-Light.ttf'),
-    'Klados-Bold': require('./assets/fonts/Poppins-SemiBold.ttf'),
-    'Klados-Italic': require('./assets/fonts/Poppins-Italic.ttf'),
-    'Klados-Ultra-Bold': require('./assets/fonts/Poppins-Bold.ttf'),
   });
 
   if (!fontsLoaded) {
@@ -69,14 +42,11 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="HomeLogin" screenOptions={{ animation: 'slide_from_right' }}>
+      <Stack.Navigator initialRouteName="HomeLogin">
         <Stack.Screen
           name="HomeLogin"
           component={HomeLogin}
-          options={{
-            headerShown: false,
-            animation: 'slide_from_left',      // 👈 only this screen slides L→R
-          }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="SignUp"
@@ -96,20 +66,6 @@ export default function App() {
         <Stack.Screen
           name="Ideas"
           component={IdeasScreen}
-          options={{
-            headerShown: false
-          }}
-        />
-        <Stack.Screen
-          name="Chat"
-          component={ChatScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="Congrats"
-          component={CongratsScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>      

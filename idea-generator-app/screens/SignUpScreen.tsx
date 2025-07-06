@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -15,8 +15,6 @@ export default function SignUpScreen() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [passwordMatchError, setPasswordMatchError] = useState('');
-  const [formFocused, setFormFocused] = useState(false);
-  const focusedInputs = useRef(0);
 
   const allFieldsFilled = firstName && lastName && email && password && confirmPassword;
   const passwordsMatch = password === confirmPassword;
@@ -31,61 +29,39 @@ export default function SignUpScreen() {
     }
     }, [password, confirmPassword]);
 
-  // Handlers to track focus/blur across all inputs
-  const handleInputFocus = () => {
-    focusedInputs.current += 1;
-    setFormFocused(true);
-  };
-  const handleInputBlur = () => {
-    focusedInputs.current -= 1;
-    if (focusedInputs.current <= 0) {
-      setFormFocused(false);
-      focusedInputs.current = 0;
-    }
-  };
-
   return (
-    <View
-      className="flex-1 bg-white px-6"
-      style={{ justifyContent: formFocused ? 'flex-start' : 'center', paddingTop: formFocused ? 60 : 0 }}
-    >
-      <Text className="text-2xl font-extrabold  text-center mb-8" style={{ fontFamily: 'Klados-Bold' }}>
-        Sign Up With Klados
+    <View className="flex-1 bg-white justify-center px-6">
+      <Text className="text-2xl font-extrabold text-black text-center mb-8">
+        Sign Up With ProjectForge!
       </Text>
 
       <TextInput
-        className={`border border-black text-black bg-white p-4 rounded-lg mb-3`}
+        className="border border-black text-black bg-white p-4 rounded-lg mb-8"
         placeholder="First Name"
         placeholderTextColor="#999"
         value={firstName}
         onChangeText={setFirstName}
-        onFocus={handleInputFocus}
-        onBlur={handleInputBlur}
       />
 
       <TextInput
-        className={`border border-black text-black bg-white p-4 rounded-lg mb-3`}
+        className="border border-black text-black bg-white p-4 rounded-lg mb-8"
         placeholder="Last Name"
         placeholderTextColor="#999"
         value={lastName}
         onChangeText={setLastName}
-        onFocus={handleInputFocus}
-        onBlur={handleInputBlur}
       />
 
       <TextInput
-        className={`border border-black text-black bg-white p-4 rounded-lg mb-3`}
+        className="border border-black text-black bg-white p-4 rounded-lg mb-8"
         placeholder="Email"
         placeholderTextColor="#999"
         value={email}
         onChangeText={setEmail}
         autoCorrect={false}
         autoCapitalize="none"
-        onFocus={handleInputFocus}
-        onBlur={handleInputBlur}
       />
       <TextInput
-        className={`border border-black text-black bg-white p-4 rounded-lg mb-3`}
+        className="border border-black text-black bg-white p-4 rounded-lg mb-8"
         placeholder="Password"
         placeholderTextColor="#999"
         secureTextEntry
@@ -95,11 +71,9 @@ export default function SignUpScreen() {
         autoComplete="off"
         autoCorrect={false}
         spellCheck={false}
-        onFocus={handleInputFocus}
-        onBlur={handleInputBlur}
       />
       <TextInput
-        className={`border border-black text-black bg-white p-4 rounded-lg mb-6`}
+        className="border border-black text-black bg-white p-4 rounded-lg mb-4"
         placeholder="Confirm Password"
         placeholderTextColor="#999"
         secureTextEntry
@@ -109,19 +83,17 @@ export default function SignUpScreen() {
         autoComplete="off"
         autoCorrect={false}
         spellCheck={false}
-        onFocus={handleInputFocus}
-        onBlur={handleInputBlur}
       />
       {passwordMatchError !== '' && (
-        <Text className={`text-red-500 ${formFocused ? 'mb-3' : 'mb-4'} text-sm text-center`}>{passwordMatchError}</Text>
+        <Text className="text-red-500 mb-4 text-sm text-center">{passwordMatchError}</Text>
         )}
 
-      <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} className={`py-4 rounded-xl items-center ${formFocused ? 'mb-3' : 'mb-4'} ${isFormValid ? 'bg-black' : 'bg-gray-400'}`} disabled={!isFormValid}>
-         <Text className="text-white text-lg" style={{ fontFamily: 'Klados-Bold' }}>Create Account</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} className={`py-4 rounded-xl items-center mb-4 ${isFormValid ? 'bg-black' : 'bg-gray-400'}`} disabled={!isFormValid}>
+         <Text className="text-white text-lg font-semibold">Create Account</Text>
         </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('HomeLogin')}>
-        <Text className="text-center text-gray-500 underline mt-3" style={{ fontFamily: 'Klados-Bold' }}>
+        <Text className="text-center text-gray-500 underline mt-3">
           Back to Home
         </Text>
       </TouchableOpacity>
