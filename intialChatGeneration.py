@@ -1,7 +1,9 @@
-from google import genai
+import google.generativeai as genai
+import os
 
-client = genai.Client(api_key="")
+genai.configure(api_key='AIzaSyBhoPsRmxBt0R_dBg8qlM8RipwYn0XU5XQ')
 
+client = genai.GenerativeModel(model_name='gemini-2.0-flash')
 print("🚀 Welcome to the Idea Generator!")
 
 # Initial Questions
@@ -66,7 +68,7 @@ how crazy the idea sounds. Specifically, you will take five inputs, and use the 
     """
     
 
-response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+response = client.generate_content(prompt)
 
 print(f"\n💡 Generated Ideas:\n{response}")
 
