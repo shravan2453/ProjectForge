@@ -1,1 +1,0 @@
-# dataclass that travels between nodes

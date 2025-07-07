@@ -3,9 +3,11 @@
 from typing import Literal, TypedDict, List, Optional, Dict, Any
 import asyncio
 import dspy
-
+from app.state import StateModel
 
 class ClassifierOutput(BaseModel):
+    """Output data for Classifier."""
+
     project_type: str = Field(..., description="The classified project type.")
     complexity_level: str = Field(..., description="The assessed complexity level.")
     recommended_resources: List[str] = Field(..., description="List of suggested learning resources.")
@@ -13,13 +15,17 @@ class ClassifierOutput(BaseModel):
     reasoning: str = Field(..., description="The model's reasoning or interpretation of the user's inputs.")
 
 class ProjectTypeClassify(dspy.Signature):
+    """Classify the type of Project."""
 
     project_purpose: str = dspy.InputField(desc="What is the project for?")
     topic_of_interest: str = dspy.InputField(desc="What topic is the user interested in?")
     potential_idea: str = dspy.InputField(desc="Does the user have a specific idea or none at all?")
-    
+    time_constraints: str = dspy.InputField(desc="How much time can user dedicate?")
+    end_goal: str = dspy.InputField(desc="What is the desired outcome of the project?")
 
     project_type: str = dspy.OutputField(desc="The classified project type.")
+    project_subtype: str = dspy.OutputField(desc="More granular classification")
+    suitable_for_portfolio: bool = dspy.OutputField(desc="Is this project suitable for a portfolio and does it support user's goals?")
 
     
 
@@ -52,7 +58,6 @@ class ResourceRecommend(dspy.Signature):
 class Classifier(dspy.Module):
     """
     Classifies the user's project based on their inputs.
-    Uses a DSPy model to predict project type and complexity.
     """
 
     def __init__(self):
@@ -61,34 +66,34 @@ class Classifier(dspy.Module):
         self.complexity_classifier = dspy.Predict(ComplexityClassify)
         self.resource_recommender = dspy.ChainOfThought(ResourceRecommend)
 
-    def run(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+    def run(self, state: StateModel) -> StateModel:
         """
         Classify the project based on user inputs.
-        Returns data that matches BotState schema.
         """
         
         # Classify project type
-
         type_result = self.type_classifier(
-            project_purpose=input_data.get("project_purpose", ""),
-            topic_of_interest=input_data.get("topic_of_interest", ""),
-            potential_idea=input_data.get("potential_idea", "")
+            project_purpose=state.project_purpose,
+            topic_of_interest=state.topic_of_interest,
+            potential_idea=state.potential_idea
+            time_constraints=state.time_constraints,
+            end_goal=state.end_goal
         )
 
-        # Then classify project complexity based on the type and technical skills
+        # Classify project complexity based on the type and technical skills
         complexity_result = self.complexity_classifier(
-            technical_skills=input_data.get("technical_skills", ""),
+            technical_skills=state.technical_skills,
             project_type=type_result.project_type,
-            additional_info=input_data.get("additional_info", "")
+            additional_info=state.additional_info
         )
 
         # Reccomend resources based on the classification results
         resource_result = self.resource_recommender(
             project_type=type_result.project_type,
             project_complexity=complexity_result.project_complexity,
-            technical_skills=input_data.get("technical_skills", ""),
-            topic_of_interest=input_data.get("topic_of_interest", ""),
-            additional_info=input_data.get("additional_info", "")
+            technical_skills=state.technical_skills,
+            topic_of_interest=state.topic_of_interest,
+            additional_info=state.additional_info
         )
         
 
