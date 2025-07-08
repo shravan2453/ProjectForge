@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 # TODO be able to regenerate the milestones with user input
 
-#TODO possibly change the Fields to be required rather than have a default_factory
+
 class MilestoneOutput(BaseModel):
     """Output data from milestone generation."""
     milestones: List[Dict[str, Any]] = Field(..., description="Project milestones with titles, descriptions, estimated hours, and week assignments")

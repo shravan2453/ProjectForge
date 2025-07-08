@@ -2,16 +2,45 @@ from pydantic import BaseModel, Field, validator
 from typing import List, Dict, Optional, Any, Literal
 from datetime import datetime
 
+# Update in state.py
+class TimeCommitment(BaseModel):
+    """Comprehensive time availability and work preferences."""
+    
+    # Basic availability
+    hours_per_week: Optional[int] = Field(None, ge=1, le=160, description="Realistic hours per week")
+    preferred_schedule: Optional[str] = Field(None, description="Free text: 'evenings after 7pm', 'weekend mornings'")
+    
+    # Work style
+    work_intensity: Optional[Literal["light", "moderate", "focused", "intensive"]] = None
+    consistency_preference: Optional[Literal["daily_small_chunks", "few_long_sessions", "flexible"]] = None
+    
+    # Coordination
+    timezone: Optional[str] = None
+    collaboration_style: Optional[Literal["real_time", "asynchronous", "hybrid"]] = None
+    
+    # Constraints
+    major_constraints: List[str] = Field(default_factory=list)
+    # ["full_time_job", "classes", "family", "other_projects"]
+    
+    busy_periods: List[str] = Field(default_factory=list)
+    # ["exam_weeks", "work_travel", "holidays"]
+
+
+
+
 
 class StateModel(BaseModel):
+
+
     # Conversation Tracking
     user_id: str
     session_id: str
     messages: List[str] = Field(default_factory=list)
     current_topic: Optional[str] = None
-    context: Dict[str, Any] = Field(default_factory=dict)
+    conversation_context: Dict[str, Any] = Field(default_factory=dict)
     session_start_time: Optional[datetime] = None
     last_updated: Optional[datetime] = None
+
 
     # Project Management
     user_type: Optional[Literal["student", "professional", "entrepreneur", "freelancer", "hobbyist"]] = None  # Type of user for tailored experience
@@ -36,7 +65,8 @@ class StateModel(BaseModel):
     info_gaps: List[str] = Field(default_factory=list)  # Missing information needed for project planning
     reflections: List[str] = Field(default_factory=list)  # User reflections and learning insights
     confidence_level: Optional[float] = Field(default=None, ge=0.0, le=1.0)  # User's confidence in project success (0-1)
-    time_constraints: Optional[Literal["low", "moderate", "high"]] = None  # User's available time commitment level
+    time_commitment: Optional[TimeCommitment] = None  # User's available time commitment level
+    end_goal: Optional[str] = None  # User's desired outcome for the project
 
     # Team Information
     has_team: bool = False  # Whether this is a team project
