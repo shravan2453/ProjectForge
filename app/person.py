@@ -19,7 +19,7 @@ class Person(BaseModel):
     experience_level: Literal["beginner", "intermediate", "advanced"] = Field(default="beginner", description="Overall experience level")
     
     # Availability & Constraints
-    weekly_hours_available: int = Field(default=10, ge=1, le=80, description="Hours available per week for project work")
+    weekly_hours_available: int = Field(default=10, ge=1, le=168, description="Hours available per week for project work")
     work_style: Literal["burst-worker", "steady-progress", "deadline-driven", "flexible"] = Field(default="steady-progress", description="Preferred working approach")
     preferred_working_hours: List[str] = Field(default_factory=list, description="Preferred work schedule")
     timezone: Optional[str] = Field(default=None, description="Person's timezone")
@@ -59,7 +59,7 @@ class Person(BaseModel):
             raise ValueError("Duplicate project IDs not allowed")
         return v
 
-# Context-specific lightweight models for efficient API usage
+# Context-specific 
 class PersonSummary(BaseModel):
     """Minimal person info for lists and references."""
     person_id: str
@@ -76,6 +76,30 @@ class ProjectMemberProfile(BaseModel):
     weekly_hours_available: int
     work_style: Literal["burst-worker", "steady-progress", "deadline-driven", "flexible"]
     timezone: Optional[str]
+
+class PersonProfile(BaseModel):
+    """Lightweight person profile for AI context."""
+    
+    # Core info for context
+    user_type: Literal["student", "professional", "entrepreneur", "freelancer", "hobbyist"]
+    experience_level: Literal["beginner", "intermediate", "advanced"]
+    
+    # Skills for understanding capability, not direction
+    has_technical_background: bool = Field(description="Whether person has any tech experience")
+    skill_domains: List[str] = Field(max_items=5, description="General areas like 'programming', 'design', 'business'")
+    
+    # Constraints for realistic planning
+    weekly_hours_available: Optional[int] = Field(ge=1, le=80)
+    work_style: Literal["burst-worker", "steady-progress", "deadline-driven", "flexible"]
+    
+    # Context for question framing, not project assumptions
+    learning_preference: Optional[Literal["hands-on", "theory-first", "example-driven"]] = None
+    collaboration_preference: Optional[Literal["solo", "small-team", "large-team", "flexible"]] = None
+    
+    ai_instruction: str = Field(
+        default="Use skill_domains for capability assessment only. Do not assume project direction based on background.",
+        description="Instructions for AI on how to use this profile")
+
 
 class TeamMember(BaseModel):
     """Lightweight reference to a person in a specific project context."""

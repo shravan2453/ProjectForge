@@ -4,6 +4,7 @@ from typing import Literal, TypedDict, List, Optional, Dict, Any
 import asyncio
 import dspy
 from app.state import StateModel
+from pydantic import BaseModel, Field
 
 class ClassifierOutput(BaseModel):
     """Output data for Classifier."""
@@ -67,20 +68,18 @@ class Classifier(dspy.Module):
         self.resource_recommender = dspy.ChainOfThought(ResourceRecommend)
 
     def run(self, state: StateModel) -> StateModel:
-        '''
+        """
         Classify the project based on user inputs.
-        '''
+        """
         
         # Classify project type
-        '''
-        type_result = self.type_classifier()
+        type_result = self.type_classifier(
             project_purpose=state.project_purpose,
             topic_of_interest=state.topic_of_interest,
-            potential_idea=state.potential_idea
+            potential_idea=state.potential_idea,
             time_constraints=state.time_constraints,
             end_goal=state.end_goal
         )
-        '''
 
         # Classify project complexity based on the type and technical skills
         complexity_result = self.complexity_classifier(
