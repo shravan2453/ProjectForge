@@ -25,8 +25,8 @@ class ProjectSummaryGenerator(dspy.Signature):
     project_type: str = dspy.InputField(desc="Classified project category")
     project_goal: str = dspy.InputField(desc="User's specific project objective")
     complexity_level: str = dspy.InputField(desc="AI-assessed difficulty level")
-    timeline_weeks: int = dspy.InputField(desc="Total project duration")
-    team_size: int = dspy.InputField(desc="Number of team members")
+    timeline_weeks: str = dspy.InputField(desc="Total project duration")
+    team_size: str = dspy.InputField(desc="Number of team members")
     key_milestones: str = dspy.InputField(desc="JSON of major project milestones")
     
     executive_summary: str = dspy.OutputField(desc="Concise 2-3 paragraph project overview")
@@ -35,8 +35,8 @@ class ProjectSummaryGenerator(dspy.Signature):
 class TeamRoleAnalyzer(dspy.Signature):
     """Analyzes team structure and defines responsibilities."""
 
-    has_team: bool = dspy.InputField(desc="Whether this is a team project")
-    team_size: int = dspy.InputField(desc="Number of team members")
+    has_team: str = dspy.InputField(desc="Whether this is a team project (True/False) (no other text)")
+    team_size: str = dspy.InputField(desc="Number of team members")
     team_members: str = dspy.InputField(desc="JSON of team member details")
     milestones: str = dspy.InputField(desc="JSON of project milestones")
     complexity_level: str = dspy.InputField(desc="Project difficulty level")
@@ -59,11 +59,11 @@ class RiskAndSuccessAnalyzer(dspy.Signature):
     """Identifies potential challenges and defines success criteria."""
     
     complexity_level: str = dspy.InputField(desc="Project difficulty assessment")
-    timeline_weeks: int = dspy.InputField(desc="Project duration")
+    timeline_weeks: str = dspy.InputField(desc="Project duration")
     time_constraints: str = dspy.InputField(desc="User's time/availability constraints")
     calendar_conflicts: str = dspy.InputField(desc="JSON of scheduling conflicts")
-    has_team: bool = dspy.InputField(desc="Whether team coordination is needed")
-    
+    has_team: str = dspy.InputField(desc="Whether team coordination is needed (True/False) (no other text)")
+
     risk_factors: str = dspy.OutputField(desc="Potential challenges and mitigation strategies")
     success_criteria: str = dspy.OutputField(desc="Clear metrics for project completion")
     contingency_plans: str = dspy.OutputField(desc="What to do if things go wrong")
@@ -108,15 +108,15 @@ class ReportAssembler(dspy.Module):
                 project_type=state.project_type,
                 project_goal=state.project_goal or "Complete project successfully",
                 complexity_level=state.complexity_level or "medium",
-                timeline_weeks=timeline_weeks,
-                team_size=state.team_size,
+                timeline_weeks=str(timeline_weeks),
+                team_size=str(state.team_size),
                 key_milestones=json.dumps(state.milestones[:3])  # Top 3 milestones
             )
             
             # Step 2: Analyze team structure
             team_result = self.team_analyzer(
-                has_team=state.has_team,
-                team_size=state.team_size,
+                has_team=str(state.has_team),
+                team_size=str(state.team_size),
                 team_members=json.dumps(state.team_members),
                 milestones=json.dumps(state.milestones),
                 complexity_level=state.complexity_level or "medium"
@@ -131,12 +131,25 @@ class ReportAssembler(dspy.Module):
             )
             
             # Step 4: Analyze risks and success criteria
+            # get time constraints from profile context
+            profile_context = state.GetProfileContext()
+            hours_per_week = profile_context.get("hours_per_week", 10)  # Default to 10 if not set
+            time_constraints = "moderate time availability"
+            if hours_per_week:
+                if hours_per_week < 5:
+                    time_constraints = "limited time availability"
+                elif hours_per_week < 15:
+                    time_constraints = "moderate time availability"
+                elif hours_per_week < 30:
+                    time_constraints = "ample time availability"    
+                else:
+                    time_constraints = "extensive time availability"
             risk_result = self.risk_analyzer(
                 complexity_level=state.complexity_level or "medium",
-                timeline_weeks=timeline_weeks,
-                time_constraints=state.time_constraints or "moderate",
+                timeline_weeks=str(timeline_weeks),
+                time_constraints=time_constraints,
                 calendar_conflicts=json.dumps(state.calendar_conflicts),
-                has_team=state.has_team
+                has_team=str(state.has_team)
             )
             
             # Step 5: Analyze goal alignment

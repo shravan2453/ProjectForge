@@ -9,5 +9,6 @@ Available Nodes:
 - milestone_node: Generates project milestones and learning paths
 - timeline_node: Creates realistic timeline with calendar integration
 - report_node: Assembles comprehensive project report
+- intent_refiner_node: Refines user intent based on if insufficient information was provided by the user
 
 """
